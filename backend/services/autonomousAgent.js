@@ -1,5 +1,4 @@
 const cron = require('node-cron');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { getDb } = require('../models/database');
 const { findBestTopic } = require('./topicDiscovery');
 const { generateContent } = require('./anthropicService');
@@ -7,15 +6,27 @@ const { generateImage } = require('./imageService');
 const { publishToInstagram, publishToYouTube, publishToFacebook, publishToTelegram } = require('./publisherService');
 const { sendReport } = require('./reportService');
 
-function getModel() {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  return genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const GEMINI_MODEL = 'gemini-2.0-flash';
+
+async function geminiGenerate(prompt) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+  });
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
 async function startAutonomousAgent() {
   const db = getDb();
   const row = db.prepare("SELECT value FROM settings WHERE key = 'autonomous_mode'").get();
-  if (!row || row.value !== 'true') { console.log('\ud83e\udd16 Avtonom agent: O\'chiq'); return; }
+  if (!row || row.value !== 'true') {
+    console.log('\ud83e\udd16 Avtonom agent: O\'chiq');
+    return;
+  }
   console.log('\ud83e\udd16 Avtonom agent ishga tushdi');
 
   cron.schedule('* * * * *', async () => {
@@ -57,16 +68,21 @@ async function runFullCycle(timeSlot) {
     const contents = await generateContent(topic.title, platforms, contentType);
     lastStep(report).status = 'ok';
 
-    report.steps.push({ name: 'Rasm (Nano Banana)', status: 'running' });
+    report.steps.push({ name: 'Rasm', status: 'running' });
     let imageUrl = null;
-    try { const r = await generateImage(topic.title, topic.imageStyle, 'instagram'); imageUrl = r.imageUrl; } catch (e) { console.warn('Rasm xato:', e.message); }
+    try { const r = await generateImage(topic.title, topic.imageStyle, 'instagram'); imageUrl = r.imageUrl; }
+    catch (e) { console.warn('Rasm xato:', e.message); }
     lastStep(report).status = 'ok';
 
     let videoUrl = null;
     if (contentType === 'video') {
       report.steps.push({ name: 'Video', status: 'running' });
-      try { const { generateVideoContent } = require('./videoService'); const vd = await generateVideoContent(topic.title, 'youtube'); videoUrl = vd.videoUrl; lastStep(report).status = 'ok'; }
-      catch (e) { lastStep(report).status = 'failed'; }
+      try {
+        const { generateVideoContent } = require('./videoService');
+        const vd = await generateVideoContent(topic.title, 'youtube');
+        videoUrl = vd.videoUrl;
+        lastStep(report).status = 'ok';
+      } catch (e) { lastStep(report).status = 'failed'; }
     }
 
     report.steps.push({ name: 'Nashr qilish', status: 'running' });
@@ -75,7 +91,12 @@ async function runFullCycle(timeSlot) {
     lastStep(report).status = publishResults.every(r => r.status === 'ok') ? 'ok' : 'partial';
 
     const Content = require('../models/Content');
-    Content.create({ title: topic.title, topic: topic.title, platforms, content_type: contentType, instagram_content: contents.instagram || null, youtube_content: contents.youtube || null, facebook_content: contents.facebook || null, telegram_content: contents.telegram || null, image_url: imageUrl, video_url: videoUrl, status: 'published', scheduled_at: null });
+    Content.create({
+      title: topic.title, topic: topic.title, platforms, content_type: contentType,
+      instagram_content: contents.instagram || null, youtube_content: contents.youtube || null,
+      facebook_content: contents.facebook || null, telegram_content: contents.telegram || null,
+      image_url: imageUrl, video_url: videoUrl, status: 'published', scheduled_at: null
+    });
     report.success = true;
   } catch (err) {
     if (report.steps.length > 0) lastStep(report).status = 'failed';
