@@ -14,13 +14,13 @@ async function findBestTopic(timeSlot, config) {
   const timeContext = hour < 11 ? 'ertalab' : hour < 16 ? 'kunduz' : 'kechqurun';
 
   const apiKey = process.env.GEMINI_API_KEY;
-  const prompt = `"${config.channelDescription || 'AI, texnologiyalar'}" kanalining kontent menejjeri san.\nSoat ${timeSlot} (${timeContext}) uchun mavzu top.\nAuditoriya: ${config.targetAudience || 'O\'zbek mutaxassislar'}\nOxirgi mavzular (takrorlama):\n${recentList}\nFaqat JSON: {"title":"","imageStyle":"professional","contentAngle":"tahlil"}`;
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: `"${config.channelDescription || 'AI, texnologiyalar'}" kanalining kontent menejjeri san.\nSoat ${timeSlot} (${timeContext}) uchun mavzu top.\nAuditoriya: ${config.targetAudience || "O'zbek mutaxassislar"}\nOxirgi mavzular (takrorlama):\n${recentList}\nFaqat JSON: {"title":"","imageStyle":"professional","contentAngle":"tahlil"}` }] }]
+    })
   });
 
   if (!res.ok) return { title: 'Raqamli texnologiyalar', imageStyle: 'professional', contentAngle: 'tahlil' };
@@ -28,7 +28,7 @@ async function findBestTopic(timeSlot, config) {
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   try {
     const match = text.match(/\{[\s\S]*\}/);
-    return match ? JSON.parse(match[0]) : { title: text.slice(0, 80), imageStyle: 'professional', contentAngle: 'tahlil' };
+    return match ? JSON.parse(match[0]) : { title: 'Texnologiya yangiliklari', imageStyle: 'professional', contentAngle: 'tahlil' };
   } catch {
     return { title: 'O\'zbekistonda texnologiya yangiliklari', imageStyle: 'professional', contentAngle: 'yangilik' };
   }

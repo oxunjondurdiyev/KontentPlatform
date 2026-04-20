@@ -1,5 +1,5 @@
-// Gemini REST API - SDK ishlatilmaydi, to'g'ridan-to'g'ri fetch
-const GEMINI_MODEL = 'gemini-2.0-flash';
+// Gemini REST API - to'g'ridan-to'g'ri fetch, SDK yo'q
+const GEMINI_MODEL = 'gemini-1.5-flash';
 
 async function geminiGenerate(prompt) {
   const apiKey = process.env.GEMINI_API_KEY;
