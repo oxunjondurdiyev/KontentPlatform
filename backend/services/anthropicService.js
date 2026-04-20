@@ -1,7 +1,8 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-function getClient() {
-  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+function getModel() {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  return genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 }
 
 const platformPrompts = {
@@ -35,14 +36,12 @@ Berilgan mavzu asosida quyidagilarni yaratasan:
 - Qisqa xabar (100-150 so'z)
 - Bold va emoji bilan formatlash
 - Subscribe undovi
-- Inline tugmalar
 Telegram markdown ishlat (* bold, _ italic).
 Faqat JSON: { "message": "", "buttons": [] }`
 };
 
 async function generateContent(topic, platforms, contentType) {
-  const genAI = getClient();
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+  const model = getModel();
   const results = {};
 
   await Promise.all(platforms.map(async (platform) => {
@@ -52,34 +51,36 @@ async function generateContent(topic, platforms, contentType) {
     const result = await model.generateContent(fullPrompt);
     const text = result.response.text().trim();
     const match = text.match(/\{[\s\S]*\}/);
-    results[platform] = match ? JSON.parse(match[0]) : { raw: text };
+    try {
+      results[platform] = match ? JSON.parse(match[0]) : { raw: text };
+    } catch {
+      results[platform] = { raw: text };
+    }
   }));
 
   return results;
 }
 
 async function generateImagePrompt(topic, style, platform) {
-  const genAI = getClient();
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+  const model = getModel();
   const result = await model.generateContent(
-    `${platform} uchun "${topic}" mavzusida professional rasm yaratish uchun ingliz tilida batafsil AI rasm generatsiya prompti yoz. Uslub: ${style || 'professional, modern'}. O'zbek madaniyati elementlarini kiritgin. Faqat promptni yoz.`
+    `${platform} uchun "${topic}" mavzusida professional rasm yaratish uchun ingliz tilida AI rasm generatsiya prompti yoz. Uslub: ${style || 'professional, modern'}. Faqat promptni yoz.`
   );
   return result.response.text().trim();
 }
 
 async function generateVideoPrompt(topic, platform) {
-  const genAI = getClient();
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+  const model = getModel();
   const result = await model.generateContent(
-    `${platform} uchun "${topic}" mavzusida 15-60 soniyalik professional video yaratish uchun ingliz tilidagi batafsil video prompt yoz. Vizual sahnalar, kamera harakatlari, rang va kayfiyatni o'z ichiga olsin. Faqat promptni yoz.`
+    `${platform} uchun "${topic}" mavzusida 15-60 soniyalik professional video uchun ingliz tilidagi batafsil prompt yoz. Faqat promptni yoz.`
   );
   return result.response.text().trim();
 }
 
 async function chatWithAI(messages, systemPrompt) {
-  const genAI = getClient();
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-pro',
+    model: 'gemini-1.5-flash',
     systemInstruction: systemPrompt || "Sen O'zbek tilida ishlaydigan kontent yaratish bo'yicha ekspertsan."
   });
 
