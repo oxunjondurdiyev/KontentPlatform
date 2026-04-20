@@ -1,0 +1,96 @@
+[build]
+  builder = "nixpacks"
+
+[deploy]
+  startCommand = "npm start"
+  restartPolicyType = "on_failure"
+  restartPolicyMaxRetries = 3
+
+[[services]]
+  name = "kontentbot-pro"
+
+  [services.build]
+    buildCommand = "npm install && cd frontend && npm install && npm run build"
+
+  [services.deploy]
+    startCommand = "npm start"
+
+  [[services.variables]]
+    name = "NODE_ENV"
+    defaultValue = "production"
+
+  [[services.variables]]
+    name = "PORT"
+    defaultValue = "3000"
+
+  [[services.variables]]
+    name = "ANTHROPIC_API_KEY"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "NANO_BANANA_API_KEY"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "VIDEO_PROVIDER"
+    defaultValue = "kling"
+
+  [[services.variables]]
+    name = "KLING_API_KEY"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "RUNWAY_API_KEY"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "HIGGSFIELD_API_KEY"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "INSTAGRAM_USER_ID"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "INSTAGRAM_ACCESS_TOKEN"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "YOUTUBE_API_KEY"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "YOUTUBE_CLIENT_ID"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "YOUTUBE_CLIENT_SECRET"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "YOUTUBE_REFRESH_TOKEN"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "FACEBOOK_PAGE_ID"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "FACEBOOK_PAGE_ACCESS_TOKEN"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "TELEGRAM_BOT_TOKEN"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "TELEGRAM_CHANNEL_ID"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "ADMIN_TELEGRAM_CHAT_ID"
+    defaultValue = ""
+
+  [[services.variables]]
+    name = "ADMIN_PASSWORD"
+    defaultValue = ""
