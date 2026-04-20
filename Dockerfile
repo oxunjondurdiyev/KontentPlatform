@@ -1,16 +1,19 @@
 FROM node:20-alpine
 
+# better-sqlite3 native compilation uchun zarur
+RUN apk add --no-cache python3 make g++ sqlite-dev
+
 WORKDIR /app
 
-# Backend dependencies
+# Backend dependencies (native build)
 COPY package*.json ./
 RUN npm ci
 
-# Frontend dependencies + build
+# Frontend dependencies
 COPY frontend/package*.json ./frontend/
 RUN cd frontend && npm ci
 
-# Copy all source
+# Copy source
 COPY backend/ ./backend/
 COPY scripts/ ./scripts/
 COPY frontend/ ./frontend/
@@ -18,7 +21,7 @@ COPY frontend/ ./frontend/
 # Build frontend
 RUN cd frontend && npm run build
 
-# Create runtime directories
+# Runtime directories
 RUN mkdir -p data uploads
 
 EXPOSE 3000
