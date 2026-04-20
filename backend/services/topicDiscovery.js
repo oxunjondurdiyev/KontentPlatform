@@ -1,5 +1,5 @@
 const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'llama-3.1-70b-versatile';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 function getApiKey() {
   if (process.env.GROQ_API_KEY) return process.env.GROQ_API_KEY;
@@ -13,11 +13,7 @@ function getApiKey() {
 
 async function discoverTopics(channelDescription, targetAudience, count = 5) {
   try {
-    const Settings = require('../models/Settings');
-    const db = require('./database');
-
     // Avval topic_queue dan olish
-    const queued = Settings.get ? null : null; // placeholder
     try {
       const { getDb } = require('../models/database');
       const dbInst = getDb();
@@ -33,9 +29,7 @@ async function discoverTopics(channelDescription, targetAudience, count = 5) {
     const apiKey = getApiKey();
     if (!apiKey) return getDefaultTopics();
 
-    const prompt = `O'zbek tilida ${channelDescription} mavzusida ${targetAudience} auditoriyasi uchun ${count} ta qiziqarli kontent mavzusi taklif qil.
-Har bir mavzu qisqa (10 so'zgacha) va aniq bo'lsin.
-Faqat JSON array qaytargin: ["mavzu1", "mavzu2", ...]`;
+    const prompt = `O'zbek tilida ${channelDescription} mavzusida ${targetAudience} auditoriyasi uchun ${count} ta qiziqarli kontent mavzusi taklif qil.\nHar bir mavzu qisqa (10 so'zgacha) va aniq bo'lsin.\nFaqat JSON array qaytargin: ["mavzu1", "mavzu2", ...]`;
 
     const res = await fetch(GROQ_API, {
       method: 'POST',
