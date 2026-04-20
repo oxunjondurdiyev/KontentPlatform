@@ -1,11 +1,8 @@
-FROM node:20-alpine
-
-# better-sqlite3 native compilation uchun
-RUN apk add --no-cache python3 make g++ sqlite-dev
+FROM node:20
 
 WORKDIR /app
 
-# Backend dependencies
+# Backend dependencies (node:20 has python3/make/g++ built-in for better-sqlite3)
 COPY package.json ./
 RUN npm install
 
@@ -13,7 +10,7 @@ RUN npm install
 COPY frontend/package.json ./frontend/
 RUN cd frontend && npm install
 
-# Copy all source
+# Copy source
 COPY backend/ ./backend/
 COPY scripts/ ./scripts/
 COPY frontend/ ./frontend/
