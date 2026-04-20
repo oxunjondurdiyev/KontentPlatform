@@ -24,7 +24,6 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// API routes
 app.use('/api/content', authMiddleware, contentRoutes);
 app.use('/api/scheduler', authMiddleware, schedulerRoutes);
 app.use('/api/publish', authMiddleware, publishRoutes);
@@ -36,7 +35,6 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Serve frontend (always — works in both dev build and production)
 const distPath = path.join(__dirname, '../frontend/dist');
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
@@ -45,7 +43,29 @@ if (fs.existsSync(distPath)) {
   });
 }
 
+// Railway Variables -> DB ga sync (har deploy da ishlaydi)
+function syncEnvToDb() {
+  try {
+    const Settings = require('./models/Settings');
+    const keys = [
+      'GROQ_API_KEY', 'GOOGLE_AI_KEY',
+      'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHANNEL_ID', 'ADMIN_TELEGRAM_CHAT_ID',
+      'INSTAGRAM_ACCESS_TOKEN', 'INSTAGRAM_USER_ID',
+      'YOUTUBE_API_KEY', 'YOUTUBE_CLIENT_ID', 'YOUTUBE_CLIENT_SECRET', 'YOUTUBE_REFRESH_TOKEN',
+      'FACEBOOK_PAGE_ACCESS_TOKEN', 'FACEBOOK_PAGE_ID',
+      'KLING_API_KEY', 'RUNWAY_API_KEY', 'VIDEO_PROVIDER'
+    ];
+    for (const key of keys) {
+      if (process.env[key]) Settings.set(key, process.env[key]);
+    }
+    console.log('Railway Variables DB ga sync qilindi');
+  } catch (e) {
+    console.error('Sync xato:', e.message);
+  }
+}
+
 initDatabase();
+syncEnvToDb();
 startScheduler();
 startAutonomousAgent();
 

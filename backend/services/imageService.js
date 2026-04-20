@@ -1,64 +1,73 @@
+const path = require('path');
+const fs = require('fs');
 const { generateImagePrompt } = require('./anthropicService');
 
 const PLATFORM_DIMENSIONS = {
-  instagram: { width: 1080, height: 1080 },
-  instagram_story: { width: 1080, height: 1920 },
-  youtube: { width: 1280, height: 720 },
-  facebook: { width: 1200, height: 630 },
-  telegram: { width: 1280, height: 720 }
+  instagram: { width: 1080, height: 1080, aspect: '1:1' },
+  instagram_story: { width: 1080, height: 1920, aspect: '9:16' },
+  youtube: { width: 1280, height: 720, aspect: '16:9' },
+  facebook: { width: 1200, height: 630, aspect: '16:9' },
+  telegram: { width: 1280, height: 720, aspect: '16:9' }
 };
 
-function getApiKey() {
-  if (process.env.NANO_BANANA_API_KEY) return process.env.NANO_BANANA_API_KEY;
+function getGoogleKey() {
+  if (process.env.GOOGLE_AI_KEY) return process.env.GOOGLE_AI_KEY;
   try {
     const Settings = require('../models/Settings');
-    return Settings.get('NANO_BANANA_API_KEY') || null;
+    return Settings.get('GOOGLE_AI_KEY') || null;
   } catch {}
   return null;
 }
 
-// Nano Banana API ga to'g'ridan-to'g'ri so'rov - xatoni qaytaradi
-async function tryNanoBanana(prompt, dims, apiKey) {
-  // Nano Banana haqiqiy API endpointlarini sinab ko'ramiz
-  const endpoints = [
-    { url: 'https://api.nanobanana.ai/v1/images/generations', body: { prompt, n: 1, size: `${dims.width}x${dims.height}` } },
-    { url: 'https://api.nanobanana.ai/v1/generate', body: { prompt, width: dims.width, height: dims.height } },
-    { url: 'https://nanobanana.ai/api/generate', body: { prompt, width: dims.width, height: dims.height } }
-  ];
+async function generateWithGoogleImagen(prompt, dims) {
+  const apiKey = getGoogleKey();
+  if (!apiKey) throw new Error('GOOGLE_AI_KEY sozlanmagan');
 
-  for (const ep of endpoints) {
-    try {
-      const res = await fetch(ep.url, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(ep.body)
-      });
-      const text = await res.text();
-      console.log(`Nano Banana [${ep.url}] status=${res.status} body=${text.slice(0, 200)}`);
-      if (res.ok) {
-        const data = JSON.parse(text);
-        const url = data.url || data.image_url || data.data?.[0]?.url || data.images?.[0];
-        if (url) return { imageUrl: url, provider: 'nanobanana' };
-      }
-    } catch (e) {
-      console.log(`Nano Banana endpoint xato: ${ep.url} -> ${e.message}`);
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        instances: [{ prompt }],
+        parameters: { sampleCount: 1, aspectRatio: dims.aspect || '1:1' }
+      })
     }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Google Imagen xato (${res.status}): ${err.slice(0, 200)}`);
   }
-  return null;
+
+  const data = await res.json();
+  const b64 = data.predictions?.[0]?.bytesBase64Encoded;
+  if (!b64) throw new Error('Google Imagen rasm qaytarmadi');
+
+  // Base64 ni faylga saqlash
+  const uploadsDir = path.join(__dirname, '../../uploads');
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  const filename = `imagen_${Date.now()}.png`;
+  fs.writeFileSync(path.join(uploadsDir, filename), Buffer.from(b64, 'base64'));
+  return `/uploads/${filename}`;
 }
 
 async function generateImage(topic, style, platform) {
   const dims = PLATFORM_DIMENSIONS[platform] || PLATFORM_DIMENSIONS.instagram;
   const imagePrompt = await generateImagePrompt(topic, style, platform);
-  const apiKey = getApiKey();
 
-  if (apiKey) {
-    const result = await tryNanoBanana(imagePrompt, dims, apiKey);
-    if (result) return { ...result, prompt: imagePrompt };
-    console.log('Nano Banana ishlamadi, Pollinations ga o\'tildi');
+  // 1. Google Imagen (agar GOOGLE_AI_KEY bo'lsa)
+  const googleKey = getGoogleKey();
+  if (googleKey) {
+    try {
+      const imageUrl = await generateWithGoogleImagen(imagePrompt, dims);
+      return { imageUrl, prompt: imagePrompt, provider: 'google-imagen' };
+    } catch (e) {
+      console.log('Google Imagen xato:', e.message);
+    }
   }
 
-  // Bepul fallback: Pollinations.ai
+  // 2. Bepul fallback: Pollinations.ai
   const encoded = encodeURIComponent(imagePrompt);
   const imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=${dims.width}&height=${dims.height}&nologo=true&model=flux`;
   return { imageUrl, prompt: imagePrompt, provider: 'pollinations' };
@@ -76,4 +85,4 @@ async function generateImagesForPlatforms(topic, style, platforms) {
   return results;
 }
 
-module.exports = { generateImage, generateImagesForPlatforms, tryNanoBanana };
+module.exports = { generateImage, generateImagesForPlatforms };
