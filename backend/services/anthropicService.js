@@ -2,9 +2,20 @@
 const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'llama-3.1-70b-versatile';
 
+function getApiKey() {
+  // Avval env, keyin DB dan o'qiydi
+  if (process.env.GROQ_API_KEY) return process.env.GROQ_API_KEY;
+  try {
+    const Settings = require('../models/Settings');
+    const key = Settings.get('GROQ_API_KEY');
+    if (key) return key;
+  } catch {}
+  return null;
+}
+
 async function groqGenerate(prompt, systemPrompt) {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error('GROQ_API_KEY sozlanmagan. console.groq.com dan bepul kalit oling.');
+  const apiKey = getApiKey();
+  if (!apiKey) throw new Error('GROQ_API_KEY sozlanmagan. Sozlamalar sahifasidan kiriting yoki console.groq.com dan bepul oling.');
 
   const messages = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
@@ -83,7 +94,7 @@ async function generateVideoPrompt(topic, platform) {
 }
 
 async function chatWithAI(messages, systemPrompt) {
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = getApiKey();
   if (!apiKey) throw new Error('GROQ_API_KEY sozlanmagan');
 
   const groqMessages = [];
