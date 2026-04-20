@@ -12,12 +12,18 @@ class Content {
         @image_url, @video_url, @thumbnail_url, @video_prompt, @status, @scheduled_at)
     `);
     const result = stmt.run({
-      ...data,
-      platforms: JSON.stringify(data.platforms),
+      title: data.title || '',
+      topic: data.topic || '',
+      platforms: JSON.stringify(data.platforms || []),
+      content_type: data.content_type || 'article',
       instagram_content: data.instagram_content ? JSON.stringify(data.instagram_content) : null,
       youtube_content: data.youtube_content ? JSON.stringify(data.youtube_content) : null,
       facebook_content: data.facebook_content ? JSON.stringify(data.facebook_content) : null,
       telegram_content: data.telegram_content ? JSON.stringify(data.telegram_content) : null,
+      image_url: data.image_url || null,
+      video_url: data.video_url || null,
+      thumbnail_url: data.thumbnail_url || null,
+      video_prompt: data.video_prompt || null,
       status: data.status || 'draft',
       scheduled_at: data.scheduled_at || null
     });
