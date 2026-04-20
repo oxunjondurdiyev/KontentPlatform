@@ -1,25 +1,36 @@
-const GEMINI_API = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+// Groq API - bepul, tez, Llama 3.1 70B
+const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL = 'llama-3.1-70b-versatile';
 
-async function geminiGenerate(prompt) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY sozlanmagan');
+async function groqGenerate(prompt, systemPrompt) {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error('GROQ_API_KEY sozlanmagan. console.groq.com dan bepul kalit oling.');
 
-  const res = await fetch(`${GEMINI_API}?key=${apiKey}`, {
+  const messages = [];
+  if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
+  messages.push({ role: 'user', content: prompt });
+
+  const res = await fetch(GROQ_API, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+      model: GROQ_MODEL,
+      messages,
+      temperature: 0.7,
+      max_tokens: 2048
     })
   });
 
   if (!res.ok) {
     const err = await res.text();
-    throw new Error(`Gemini API xato (${res.status}): ${err}`);
+    throw new Error(`Groq API xato (${res.status}): ${err}`);
   }
 
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  return data.choices?.[0]?.message?.content || '';
 }
 
 const platformPrompts = {
@@ -29,7 +40,7 @@ Berilgan mavzu asosida quyidagilarni yaratasan:
 - Asosiy matn (150-220 so'z, o'zbek tilida)
 - 15-20 ta hashtag
 - Call-to-action
-Faqat JSON: { "title": "", "caption": "", "hashtags": [], "cta": "" }`,
+Faqat JSON qaytargin: { "title": "", "caption": "", "hashtags": [], "cta": "" }`,
 
   youtube: `Sen YouTube O'zbek kanallar uchun kontent mutaxassisisan.
 - Video sarlavhasi (60 belgigacha)
@@ -53,9 +64,9 @@ Faqat JSON: { "message": "", "buttons": [] }`
 async function generateContent(topic, platforms, contentType) {
   const results = {};
   await Promise.all(platforms.map(async (platform) => {
-    const prompt = platformPrompts[platform];
-    if (!prompt) return;
-    const text = await geminiGenerate(`${prompt}\n\nMavzu: ${topic}\nKontent turi: ${contentType}\nFaqat JSON qaytargin.`);
+    const systemPrompt = platformPrompts[platform];
+    if (!systemPrompt) return;
+    const text = await groqGenerate(`Mavzu: ${topic}\nKontent turi: ${contentType}\nFaqat JSON qaytargin, boshqa hech narsa yozma.`, systemPrompt);
     const match = text.match(/\{[\s\S]*\}/);
     try { results[platform] = match ? JSON.parse(match[0]) : { raw: text }; }
     catch { results[platform] = { raw: text }; }
@@ -64,35 +75,30 @@ async function generateContent(topic, platforms, contentType) {
 }
 
 async function generateImagePrompt(topic, style, platform) {
-  return geminiGenerate(`${platform} uchun "${topic}" mavzusida professional rasm uchun ingliz tilida AI prompt yoz. Uslub: ${style || 'professional'}. Faqat promptni yoz.`);
+  return groqGenerate(`${platform} uchun "${topic}" mavzusida professional rasm uchun ingliz tilida AI prompt yoz. Uslub: ${style || 'professional'}. Faqat promptni yoz.`);
 }
 
 async function generateVideoPrompt(topic, platform) {
-  return geminiGenerate(`${platform} uchun "${topic}" mavzusida qisqa video uchun ingliz tilida prompt yoz. Faqat promptni yoz.`);
+  return groqGenerate(`${platform} uchun "${topic}" mavzusida qisqa video uchun ingliz tilida prompt yoz. Faqat promptni yoz.`);
 }
 
 async function chatWithAI(messages, systemPrompt) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY sozlanmagan');
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error('GROQ_API_KEY sozlanmagan');
 
-  const contents = messages.map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }]
-  }));
+  const groqMessages = [];
+  if (systemPrompt) groqMessages.push({ role: 'system', content: systemPrompt });
+  messages.forEach(m => groqMessages.push({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }));
 
-  const res = await fetch(`${GEMINI_API}?key=${apiKey}`, {
+  const res = await fetch(GROQ_API, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: systemPrompt || "Sen O'zbek tilida kontent yaratish bo'yicha ekspertsan." }] },
-      contents,
-      generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
-    })
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({ model: GROQ_MODEL, messages: groqMessages, temperature: 0.7, max_tokens: 1500 })
   });
 
-  if (!res.ok) throw new Error(`Gemini xato: ${res.status}`);
+  if (!res.ok) throw new Error(`Groq xato: ${res.status}`);
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  return data.choices?.[0]?.message?.content || '';
 }
 
 module.exports = { generateContent, generateImagePrompt, generateVideoPrompt, chatWithAI };

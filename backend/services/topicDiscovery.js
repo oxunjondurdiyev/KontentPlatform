@@ -1,4 +1,5 @@
-const GEMINI_API = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL = 'llama-3.1-70b-versatile';
 
 async function findBestTopic(timeSlot, config) {
   const { getDb } = require('../models/database');
@@ -15,18 +16,23 @@ async function findBestTopic(timeSlot, config) {
   const hour = parseInt(timeSlot === 'TEST' ? '09' : timeSlot.split(':')[0]);
   const timeContext = hour < 11 ? 'ertalab' : hour < 16 ? 'kunduz' : 'kechqurun';
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  const prompt = `"${config.channelDescription || 'AI, texnologiyalar'}" kanalining kontent menejjeri san.\nSoat ${timeSlot} (${timeContext}) uchun mavzu top.\nAuditoriya: ${config.targetAudience || "O'zbek mutaxassislar"}\nOxirgi mavzular (takrorlama):\n${recentList}\nFaqat JSON: {"title":"","imageStyle":"professional","contentAngle":"tahlil"}`;
-
-  const res = await fetch(`${GEMINI_API}?key=${apiKey}`, {
+  const apiKey = process.env.GROQ_API_KEY;
+  const res = await fetch(GROQ_API, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [
+        { role: 'system', content: `"${config.channelDescription || 'AI, texnologiyalar'}" kanalining kontent menejjeri san.` },
+        { role: 'user', content: `Soat ${timeSlot} (${timeContext}) uchun mavzu top.\nAuditoriya: ${config.targetAudience || "O'zbek mutaxassislar"}\nOxirgi mavzular (takrorlama):\n${recentList}\nFaqat JSON: {"title":"","imageStyle":"professional","contentAngle":"tahlil"}` }
+      ],
+      temperature: 0.8, max_tokens: 300
+    })
   });
 
   if (!res.ok) return { title: 'Raqamli texnologiyalar', imageStyle: 'professional', contentAngle: 'tahlil' };
   const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const text = data.choices?.[0]?.message?.content || '';
   try {
     const match = text.match(/\{[\s\S]*\}/);
     return match ? JSON.parse(match[0]) : { title: 'Texnologiya yangiliklari', imageStyle: 'professional', contentAngle: 'tahlil' };
