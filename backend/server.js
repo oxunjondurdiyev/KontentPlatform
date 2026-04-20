@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const { initDatabase } = require('./models/database');
 const authMiddleware = require('./middleware/auth');
 
@@ -23,6 +24,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// API routes
 app.use('/api/content', authMiddleware, contentRoutes);
 app.use('/api/scheduler', authMiddleware, schedulerRoutes);
 app.use('/api/publish', authMiddleware, publishRoutes);
@@ -34,10 +36,12 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+// Serve frontend (always — works in both dev build and production)
+const distPath = path.join(__dirname, '../frontend/dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+    res.sendFile(path.join(distPath, 'index.html'));
   });
 }
 
@@ -46,7 +50,7 @@ startScheduler();
 startAutonomousAgent();
 
 app.listen(PORT, () => {
-  console.log(`\ud83d\ude80 KontentBot Pro server http://localhost:${PORT} da ishga tushdi`);
+  console.log(`KontentBot Pro http://localhost:${PORT} da ishga tushdi`);
 });
 
 module.exports = app;
