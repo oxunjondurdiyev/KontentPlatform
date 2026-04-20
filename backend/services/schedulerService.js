@@ -16,27 +16,33 @@ async function publishContent(content) {
     'INSERT INTO publish_logs (content_id, platform, status, response) VALUES (?, ?, ?, ?)'
   );
 
-  const results = await Promise.allSettled(
-    content.platforms.map(platform => {
-      if (!publishers[platform]) return Promise.resolve();
-      return publishers[platform](content)
-        .then(res => {
-          logStmt.run(content.id, platform, 'success', JSON.stringify(res));
-        })
-        .catch(err => {
-          logStmt.run(content.id, platform, 'failed', err.message);
-          throw err;
-        });
+  const results = {};
+
+  await Promise.all(
+    content.platforms.map(async (platform) => {
+      if (!publishers[platform]) return;
+      try {
+        const res = await publishers[platform](content);
+        logStmt.run(content.id, platform, 'success', JSON.stringify(res));
+        results[platform] = { success: true };
+      } catch (err) {
+        logStmt.run(content.id, platform, 'failed', err.message);
+        results[platform] = { success: false, error: err.message };
+      }
     })
   );
 
-  const hasError = results.some(r => r.status === 'rejected');
-  if (hasError) {
-    const errors = results.filter(r => r.status === 'rejected').map(r => r.reason?.message).join('; ');
+  const anySuccess = Object.values(results).some(r => r.success);
+  const allFailed = Object.values(results).every(r => !r.success);
+
+  if (allFailed) {
+    const errors = Object.entries(results).map(([p, r]) => `${p}: ${r.error}`).join('; ');
     Content.markFailed(content.id, errors);
   } else {
     Content.markPublished(content.id);
   }
+
+  return results;
 }
 
 function startScheduler() {

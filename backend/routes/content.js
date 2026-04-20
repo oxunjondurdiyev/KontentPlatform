@@ -6,7 +6,6 @@ const { generateImagesForPlatforms } = require('../services/imageService');
 const { generateVideoContent } = require('../services/videoService');
 const { publishContent } = require('../services/schedulerService');
 
-// Barcha kontentlarni olish
 router.get('/', (req, res) => {
   try {
     const { status, limit, offset } = req.query;
@@ -17,7 +16,6 @@ router.get('/', (req, res) => {
   }
 });
 
-// Statistika
 router.get('/stats', (req, res) => {
   try {
     res.json({ success: true, data: Content.getStats() });
@@ -26,7 +24,6 @@ router.get('/stats', (req, res) => {
   }
 });
 
-// Bitta kontent
 router.get('/:id', (req, res) => {
   try {
     const content = Content.findById(Number(req.params.id));
@@ -37,7 +34,6 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// Yangi kontent yaratish (AI bilan)
 router.post('/generate', async (req, res) => {
   try {
     const { topic, platforms, contentType, imageStyle, generateVideo, scheduledAt } = req.body;
@@ -47,31 +43,29 @@ router.post('/generate', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Kamida bitta platforma tanlang' });
     }
 
-    // AI kontent yaratish
+    // AI matn yaratish
     const contentData = await generateContent(topic, platforms, contentType || 'article');
 
-    // Rasm yaratish
+    // Rasm yaratish (Pollinations bepul fallback bilan)
     let imageUrl = null;
+    let imagePrompt = null;
     try {
       const images = await generateImagesForPlatforms(topic, imageStyle, platforms);
-      imageUrl = Object.values(images).find(i => i && i.imageUrl)?.imageUrl || null;
-    } catch {
-      // Rasm yaratish muvaffaqiyatsiz bo'lsa davom etamiz
-    }
+      const firstImage = Object.values(images).find(i => i && i.imageUrl);
+      imageUrl = firstImage?.imageUrl || null;
+      imagePrompt = firstImage?.prompt || null;
+    } catch {}
 
     // Video yaratish (agar so'ralsa)
     let videoData = null;
-    if (generateVideo && (platforms.includes('youtube') || contentType === 'video')) {
+    if (generateVideo) {
       try {
-        videoData = await generateVideoContent(topic, 'youtube');
-      } catch {
-        // Video yaratish muvaffaqiyatsiz bo'lsa davom etamiz
-      }
+        videoData = await generateVideoContent(topic, platforms.includes('youtube') ? 'youtube' : platforms[0]);
+      } catch {}
     }
 
-    // Bazaga saqlash
     const saved = Content.create({
-      title: contentData.instagram?.title || contentData.youtube?.title || topic,
+      title: contentData.instagram?.title || contentData.youtube?.title || contentData.facebook?.headline || topic,
       topic,
       platforms,
       content_type: contentType || 'article',
@@ -80,24 +74,30 @@ router.post('/generate', async (req, res) => {
       facebook_content: contentData.facebook || null,
       telegram_content: contentData.telegram || null,
       image_url: imageUrl,
+      thumbnail_url: null,
       video_url: videoData?.videoUrl || null,
-      video_prompt: videoData?.prompt || null,
+      video_prompt: videoData?.prompt || imagePrompt || null,
       status: scheduledAt ? 'scheduled' : 'draft',
       scheduled_at: scheduledAt || null
     });
 
-    res.json({ success: true, data: saved });
+    res.json({
+      success: true,
+      data: {
+        ...saved,
+        videoPromptOnly: videoData?.promptOnly || false,
+        imageProvider: imageUrl ? (imageUrl.includes('pollinations') ? 'pollinations' : 'nanobanana') : null
+      }
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Kontent yangilash
 router.put('/:id', (req, res) => {
   try {
     const content = Content.findById(Number(req.params.id));
     if (!content) return res.status(404).json({ success: false, error: 'Topilmadi' });
-
     const updated = Content.update(Number(req.params.id), req.body);
     res.json({ success: true, data: updated });
   } catch (err) {
@@ -105,7 +105,6 @@ router.put('/:id', (req, res) => {
   }
 });
 
-// Kontent o'chirish
 router.delete('/:id', (req, res) => {
   try {
     Content.delete(Number(req.params.id));
@@ -115,21 +114,19 @@ router.delete('/:id', (req, res) => {
   }
 });
 
-// Darhol nashr qilish
 router.post('/:id/publish', async (req, res) => {
   try {
     const content = Content.findById(Number(req.params.id));
     if (!content) return res.status(404).json({ success: false, error: 'Topilmadi' });
 
-    await publishContent(content);
+    const publishResults = await publishContent(content);
     const updated = Content.findById(content.id);
-    res.json({ success: true, data: updated });
+    res.json({ success: true, data: updated, publishResults });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// AI bilan suhbat
 router.post('/chat', async (req, res) => {
   try {
     const { chatWithAI } = require('../services/anthropicService');

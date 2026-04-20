@@ -1,7 +1,5 @@
 const { generateImagePrompt } = require('./anthropicService');
 
-const NANO_BANANA_BASE = 'https://api.nanobanana.ai/v1';
-
 const PLATFORM_DIMENSIONS = {
   instagram: { width: 1080, height: 1080 },
   instagram_story: { width: 1080, height: 1920 },
@@ -10,34 +8,40 @@ const PLATFORM_DIMENSIONS = {
   telegram: { width: 1280, height: 720 }
 };
 
-async function generateImage(topic, style, platform) {
-  const apiKey = process.env.NANO_BANANA_API_KEY;
-  if (!apiKey) throw new Error('NANO_BANANA_API_KEY sozlanmagan');
+function getApiKey() {
+  if (process.env.NANO_BANANA_API_KEY) return process.env.NANO_BANANA_API_KEY;
+  try {
+    const Settings = require('../models/Settings');
+    return Settings.get('NANO_BANANA_API_KEY') || null;
+  } catch {}
+  return null;
+}
 
+async function generateImage(topic, style, platform) {
   const dims = PLATFORM_DIMENSIONS[platform] || PLATFORM_DIMENSIONS.instagram;
   const imagePrompt = await generateImagePrompt(topic, style, platform);
+  const apiKey = getApiKey();
 
-  const response = await fetch(`${NANO_BANANA_BASE}/generate`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      prompt: imagePrompt,
-      width: dims.width,
-      height: dims.height,
-      style: style || 'professional, modern, uzbek culture inspired'
-    })
-  });
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Nano Banana API xatosi: ${err}`);
+  // Nano Banana API (agar kalit bo'lsa)
+  if (apiKey) {
+    try {
+      const response = await fetch('https://api.nanobanana.ai/v1/generate', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: imagePrompt, width: dims.width, height: dims.height, style: style || 'professional' })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const url = data.url || data.image_url;
+        if (url) return { imageUrl: url, prompt: imagePrompt, provider: 'nanobanana' };
+      }
+    } catch {}
   }
 
-  const data = await response.json();
-  return { imageUrl: data.url || data.image_url, prompt: imagePrompt };
+  // Bepul fallback: Pollinations.ai (API keysiz ishlaydi)
+  const encoded = encodeURIComponent(imagePrompt);
+  const imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=${dims.width}&height=${dims.height}&nologo=true&model=flux`;
+  return { imageUrl, prompt: imagePrompt, provider: 'pollinations' };
 }
 
 async function generateImagesForPlatforms(topic, style, platforms) {
