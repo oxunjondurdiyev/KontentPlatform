@@ -1,3 +1,5 @@
+const GEMINI_API = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+
 async function findBestTopic(timeSlot, config) {
   const { getDb } = require('../models/database');
   const db = getDb();
@@ -14,13 +16,12 @@ async function findBestTopic(timeSlot, config) {
   const timeContext = hour < 11 ? 'ertalab' : hour < 16 ? 'kunduz' : 'kechqurun';
 
   const apiKey = process.env.GEMINI_API_KEY;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-  const res = await fetch(url, {
+  const prompt = `"${config.channelDescription || 'AI, texnologiyalar'}" kanalining kontent menejjeri san.\nSoat ${timeSlot} (${timeContext}) uchun mavzu top.\nAuditoriya: ${config.targetAudience || "O'zbek mutaxassislar"}\nOxirgi mavzular (takrorlama):\n${recentList}\nFaqat JSON: {"title":"","imageStyle":"professional","contentAngle":"tahlil"}`;
+
+  const res = await fetch(`${GEMINI_API}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: `"${config.channelDescription || 'AI, texnologiyalar'}" kanalining kontent menejjeri san.\nSoat ${timeSlot} (${timeContext}) uchun mavzu top.\nAuditoriya: ${config.targetAudience || "O'zbek mutaxassislar"}\nOxirgi mavzular (takrorlama):\n${recentList}\nFaqat JSON: {"title":"","imageStyle":"professional","contentAngle":"tahlil"}` }] }]
-    })
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
   });
 
   if (!res.ok) return { title: 'Raqamli texnologiyalar', imageStyle: 'professional', contentAngle: 'tahlil' };
