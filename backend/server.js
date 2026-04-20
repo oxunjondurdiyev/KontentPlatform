@@ -43,11 +43,13 @@ if (fs.existsSync(distPath)) {
   });
 }
 
-// Railway Variables -> DB ga sync (har deploy da ishlaydi)
+// Railway Variables -> DB ga sync (har deploy da)
 function syncEnvToDb() {
   try {
     const Settings = require('./models/Settings');
-    const keys = [
+
+    // To'g'ridan-to'g'ri mapping
+    const direct = [
       'GROQ_API_KEY', 'GOOGLE_AI_KEY',
       'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHANNEL_ID', 'ADMIN_TELEGRAM_CHAT_ID',
       'INSTAGRAM_ACCESS_TOKEN', 'INSTAGRAM_USER_ID',
@@ -55,10 +57,16 @@ function syncEnvToDb() {
       'FACEBOOK_PAGE_ACCESS_TOKEN', 'FACEBOOK_PAGE_ID',
       'KLING_API_KEY', 'RUNWAY_API_KEY', 'VIDEO_PROVIDER'
     ];
-    for (const key of keys) {
+    for (const key of direct) {
       if (process.env[key]) Settings.set(key, process.env[key]);
     }
-    console.log('Railway Variables DB ga sync qilindi');
+
+    // Eski nom aliaslar (GEMINI_API_KEY -> GOOGLE_AI_KEY)
+    if (process.env.GEMINI_API_KEY && !process.env.GOOGLE_AI_KEY) {
+      Settings.set('GOOGLE_AI_KEY', process.env.GEMINI_API_KEY);
+    }
+
+    console.log('Env vars DB ga sync qilindi');
   } catch (e) {
     console.error('Sync xato:', e.message);
   }

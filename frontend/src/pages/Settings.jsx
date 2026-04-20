@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 const FIELDS = [
-  { key: 'GROQ_API_KEY', label: 'Groq API Key (AI matn)', section: 'AI', hint: 'console.groq.com — bepul' },
+  { key: 'GROQ_API_KEY', label: 'Groq API Key (AI matn yaratish)', section: 'AI', hint: 'console.groq.com — bepul' },
   { key: 'GOOGLE_AI_KEY', label: 'Google AI Key (Imagen rasm)', section: 'AI', hint: 'aistudio.google.com/api-keys' },
   { key: 'VIDEO_PROVIDER', label: 'Video provayder (kling/runway)', section: 'Video', type: 'text' },
   { key: 'KLING_API_KEY', label: 'Kling AI API Key', section: 'Video' },
@@ -56,13 +56,12 @@ export default function Settings() {
     <div className="p-6 max-w-2xl">
       <h2 className="text-2xl font-bold mb-2">⚙️ Sozlamalar</h2>
 
-      {/* Muhim eslatma */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5 text-sm">
-        <p className="font-semibold text-amber-800 mb-1">💡 API kalitlarni doimiy saqlash uchun:</p>
-        <p className="text-amber-700">
-          Quyidagi maydonlarda kiritilgan kalitlar <strong>shu sessiyada</strong> ishlaydi.
-          Deploy bo'lganda yo'qolmasligi uchun — Railway dashboard → <strong>Variables</strong> bo'limiga ham qo'shing
-          (bir marta qo'yilsa, har deploy da avtomatik yuklanadi).
+      <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-5 text-sm">
+        <p className="font-semibold text-blue-800 mb-1">💡 Kalitlarni doimiy saqlash</p>
+        <p className="text-blue-700">
+          Quyida kiritilgan kalitlar DB da saqlanadi. Deploy bo'lganda yo'qolmasligi uchun —
+          Railway dashboard → <strong>Variables</strong> → <strong>+ New Variable</strong> orqali ham qo'shing.
+          Ikki joyda bo'lsa, Railway Variable ustunlik qiladi.
         </p>
       </div>
 
