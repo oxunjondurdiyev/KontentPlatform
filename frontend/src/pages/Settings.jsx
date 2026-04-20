@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 const FIELDS = [
   { key: 'GROQ_API_KEY', label: 'Groq API Key (AI kontent)', section: 'AI', hint: 'console.groq.com dan bepul oling' },
-  { key: 'NANO_BANANA_API_KEY', label: 'Nano Banana API Key (rasm yaratish)', section: 'AI' },
+  { key: 'NANO_BANANA_API_KEY', label: 'Nano Banana API Key (rasm yaratish)', section: 'AI', testable: true },
   { key: 'VIDEO_PROVIDER', label: 'Video provayder (kling/runway)', section: 'Video', type: 'text' },
   { key: 'KLING_API_KEY', label: 'Kling AI API Key', section: 'Video' },
   { key: 'RUNWAY_API_KEY', label: 'Runway ML API Key', section: 'Video' },
@@ -26,6 +26,8 @@ export default function Settings() {
   const [editing, setEditing] = useState({});
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+  const [testing, setTesting] = useState(false);
 
   useEffect(() => {
     fetch('/api/settings').then(r => r.json()).then(d => setValues(d.data || {}));
@@ -53,10 +55,24 @@ export default function Settings() {
     }
   };
 
+  const testNanoBanana = async () => {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await fetch('/api/settings/test-nano-banana', { method: 'POST' });
+      const data = await res.json();
+      setTestResult(data);
+    } catch (e) {
+      setTestResult({ success: false, error: e.message });
+    } finally {
+      setTesting(false);
+    }
+  };
+
   return (
     <div className="p-6 max-w-2xl">
       <h2 className="text-2xl font-bold mb-2">⚙️ Sozlamalar</h2>
-      <p className="text-gray-500 text-sm mb-6">API kalitlar va integratsiya sozlamalari. Qiymatlar xavfsiz ma'lumotlar bazasida saqlanadi.</p>
+      <p className="text-gray-500 text-sm mb-6">API kalitlar va integratsiya sozlamalari.</p>
 
       {sections.map(section => (
         <div key={section} className="card mb-4">
@@ -68,13 +84,21 @@ export default function Settings() {
                   {field.label}
                   {field.hint && <span className="ml-2 text-blue-400 font-normal">({field.hint})</span>}
                 </label>
-                <input
-                  type={field.type === 'text' ? 'text' : 'password'}
-                  className="input text-sm font-mono"
-                  placeholder={values[field.key] ? '••••••••' + (values[field.key] !== true ? String(values[field.key]).slice(-4) : '') : 'Kiritilmagan...'}
-                  value={editing[field.key] ?? ''}
-                  onChange={e => setEditing(prev => ({ ...prev, [field.key]: e.target.value }))}
-                />
+                <div className="flex gap-2">
+                  <input
+                    type={field.type === 'text' ? 'text' : 'password'}
+                    className="input text-sm font-mono flex-1"
+                    placeholder={values[field.key] ? '•••••••• (saqlangan)' : 'Kiritilmagan...'}
+                    value={editing[field.key] ?? ''}
+                    onChange={e => setEditing(prev => ({ ...prev, [field.key]: e.target.value }))}
+                  />
+                  {field.testable && values[field.key] && (
+                    <button onClick={testNanoBanana} disabled={testing}
+                      className="px-3 py-1.5 text-xs bg-amber-100 text-amber-700 rounded-lg border border-amber-300 hover:bg-amber-200 whitespace-nowrap">
+                      {testing ? '⏳...' : '🔧 Test'}
+                    </button>
+                  )}
+                </div>
                 {values[field.key] && (
                   <p className="text-xs text-green-600 mt-0.5">✅ Saqlangan</p>
                 )}
@@ -83,6 +107,22 @@ export default function Settings() {
           </div>
         </div>
       ))}
+
+      {/* Nano Banana test natijasi */}
+      {testResult && (
+        <div className="card mb-4 border border-amber-200">
+          <h4 className="font-semibold mb-2">🔧 Nano Banana Test Natijasi</h4>
+          {testResult.results?.map((r, i) => (
+            <div key={i} className={`text-xs mb-2 p-2 rounded ${
+              r.status === 200 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+            }`}>
+              <strong>{r.endpoint}</strong>: HTTP {r.status}<br />
+              <code className="break-all">{r.body}</code>
+            </div>
+          ))}
+          {testResult.error && <p className="text-red-600 text-sm">{testResult.error}</p>}
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <button onClick={handleSave} disabled={loading} className="btn-primary px-6 py-2">
