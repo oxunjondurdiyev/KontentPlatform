@@ -9,8 +9,11 @@ const contentRoutes = require('./routes/content');
 const schedulerRoutes = require('./routes/scheduler');
 const publishRoutes = require('./routes/publish');
 const mediaRoutes = require('./routes/media');
+const settingsRoutes = require('./routes/settings');
+const autonomousRoutes = require('./routes/autonomous');
 
 const { startScheduler } = require('./services/schedulerService');
+const { startAutonomousAgent } = require('./services/autonomousAgent');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,18 +23,17 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// API routes
 app.use('/api/content', authMiddleware, contentRoutes);
 app.use('/api/scheduler', authMiddleware, schedulerRoutes);
 app.use('/api/publish', authMiddleware, publishRoutes);
 app.use('/api/media', authMiddleware, mediaRoutes);
+app.use('/api/settings', authMiddleware, settingsRoutes);
+app.use('/api/autonomous', authMiddleware, autonomousRoutes);
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Serve frontend in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
   app.get('*', (req, res) => {
@@ -39,12 +41,12 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Initialize DB and start server
 initDatabase();
 startScheduler();
+startAutonomousAgent();
 
 app.listen(PORT, () => {
-  console.log(`KontentBot Pro server http://localhost:${PORT} da ishga tushdi`);
+  console.log(`\ud83d\ude80 KontentBot Pro server http://localhost:${PORT} da ishga tushdi`);
 });
 
 module.exports = app;

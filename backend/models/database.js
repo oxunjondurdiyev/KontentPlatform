@@ -69,9 +69,47 @@ function initDatabase() {
       platform TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS autonomous_runs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      time_slot TEXT NOT NULL,
+      success INTEGER DEFAULT 0,
+      error_message TEXT,
+      started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      finished_at DATETIME
+    );
+
+    CREATE TABLE IF NOT EXISTS topic_queue (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      image_style TEXT DEFAULT 'professional',
+      content_angle TEXT DEFAULT 'tahlil',
+      used INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
-  console.log('Ma\'lumotlar bazasi muvaffaqiyatli ishga tushdi');
+  // Standart autonomous sozlamalar
+  const setDefault = database.prepare(
+    `INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)`
+  );
+  setDefault.run('autonomous_mode', 'false');
+  setDefault.run('autonomous_schedule', JSON.stringify({
+    monday: ['09:00', '18:00'],
+    tuesday: ['09:00', '18:00'],
+    wednesday: ['09:00', '13:00', '18:00'],
+    thursday: ['09:00', '18:00'],
+    friday: ['09:00', '13:00', '20:00'],
+    saturday: ['10:00'],
+    sunday: []
+  }));
+  setDefault.run('platform_config', JSON.stringify({
+    platforms: ['instagram', 'telegram'],
+    channelDescription: "AI, ISO standartlar, raqamli texnologiyalar, O'zbekiston",
+    targetAudience: "O'zbek mutaxassislar, tadbirkorlar, talabalar"
+  }));
+
+  console.log("Ma'lumotlar bazasi muvaffaqiyatli ishga tushdi");
 }
 
 module.exports = { getDb, initDatabase };
