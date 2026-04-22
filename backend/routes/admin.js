@@ -57,30 +57,70 @@ router.get('/stats', (req, res) => {
   }
 });
 
-// Platformani test qilish
+// Telegram diagnostika
 router.post('/test-platform', async (req, res) => {
   try {
-    const { platform } = req.body;
     const Settings = require('../models/Settings');
-    const results = {};
+    const token = process.env.TELEGRAM_BOT_TOKEN || Settings.get('TELEGRAM_BOT_TOKEN');
+    const chatId = process.env.TELEGRAM_CHANNEL_ID || Settings.get('TELEGRAM_CHANNEL_ID');
 
-    if (platform === 'telegram' || !platform) {
-      const token = process.env.TELEGRAM_BOT_TOKEN || Settings.get('TELEGRAM_BOT_TOKEN');
-      const chatId = process.env.TELEGRAM_CHANNEL_ID || Settings.get('TELEGRAM_CHANNEL_ID');
-      if (token && chatId) {
-        const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: chatId, text: '✅ KontentBot Pro - Telegram test muvaffaqiyatli!' })
-        });
-        const d = await r.json();
-        results.telegram = d.ok ? { success: true } : { success: false, error: d.description };
-      } else {
-        results.telegram = { success: false, error: 'Token yoki Channel ID kiritilmagan' };
-      }
+    const steps = [];
+
+    if (!token) {
+      return res.json({ success: true, results: { telegram: {
+        success: false,
+        error: 'TELEGRAM_BOT_TOKEN kiritilmagan. Railway Variables yoki Sozlamalar sahifasiga qo\'shing.'
+      }}, steps });
+    }
+    if (!chatId) {
+      return res.json({ success: true, results: { telegram: {
+        success: false,
+        error: 'TELEGRAM_CHANNEL_ID kiritilmagan. @kanalingiz yoki -1001234567890 formatida kiriting.'
+      }}, steps });
     }
 
-    res.json({ success: true, results });
+    // 1. Bot tokenni tekshirish
+    const getMeRes = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+    const getMeData = await getMeRes.json();
+    if (!getMeData.ok) {
+      return res.json({ success: true, steps, results: { telegram: {
+        success: false,
+        error: `Bot token noto'g'ri! Telegram xatosi: ${getMeData.description}. @BotFather dan yangi token oling.`
+      }}});
+    }
+    steps.push(`✅ Bot topildi: @${getMeData.result.username}`);
+
+    // 2. Kanal/chat mavjudligini tekshirish
+    const getChatRes = await fetch(`https://api.telegram.org/bot${token}/getChat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId })
+    });
+    const getChatData = await getChatRes.json();
+    if (!getChatData.ok) {
+      return res.json({ success: true, steps, results: { telegram: {
+        success: false,
+        error: `Kanal topilmadi: "${chatId}". Bot kanalga admin qilib qo'shilganmi? Xato: ${getChatData.description}`
+      }}});
+    }
+    steps.push(`✅ Kanal topildi: ${getChatData.result.title || chatId}`);
+
+    // 3. Test xabar yuborish
+    const sendRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text: '✅ KontentBot Pro — Telegram ulanishi muvaffaqiyatli tekshirildi!' })
+    });
+    const sendData = await sendRes.json();
+    if (!sendData.ok) {
+      return res.json({ success: true, steps, results: { telegram: {
+        success: false,
+        error: `Xabar yuborishda xato: ${sendData.description}. Bot kanalga post yuborish huquqiga ega emasmi?`
+      }}});
+    }
+    steps.push('✅ Test xabar yuborildi!');
+
+    res.json({ success: true, steps, results: { telegram: { success: true } } });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -16,8 +16,8 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [testResult, setTestResult] = useState(null);
+  const [testSteps, setTestSteps] = useState([]);
   const [testing, setTesting] = useState(false);
-  const [selected, setSelected] = useState(null);
 
   useEffect(() => {
     if (user?.role !== "superadmin") { navigate("/"); return; }
@@ -47,7 +47,7 @@ export default function AdminDashboard() {
   };
 
   const testTelegram = async () => {
-    setTesting(true); setTestResult(null);
+    setTesting(true); setTestResult(null); setTestSteps([]);
     const res = await fetch("/api/admin/test-platform", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -55,6 +55,7 @@ export default function AdminDashboard() {
     });
     const d = await res.json();
     setTestResult(d.results);
+    setTestSteps(d.steps || []);
     setTesting(false);
   };
 
@@ -82,19 +83,38 @@ export default function AdminDashboard() {
 
       {/* Platform test */}
       <div className="card mb-6">
-        <h3 className="font-semibold mb-3">📡 Platform Test</h3>
+        <h3 className="font-semibold mb-3">📡 Telegram Diagnostika</h3>
         <button onClick={testTelegram} disabled={testing} className="btn-primary px-4 py-2 text-sm">
-          {testing ? "⏳..." : "✈️ Telegram Test"}
+          {testing ? "⏳ Tekshirilmoqda..." : "✈️ Telegram Test"}
         </button>
-        {testResult && (
+
+        {testSteps.length > 0 && (
           <div className="mt-3 space-y-1">
+            {testSteps.map((s, i) => (
+              <div key={i} className="text-sm text-green-700 bg-green-50 px-3 py-1 rounded">{s}</div>
+            ))}
+          </div>
+        )}
+
+        {testResult && (
+          <div className="mt-2 space-y-1">
             {Object.entries(testResult).map(([p, r]) => (
-              <div key={p} className={"text-sm px-3 py-1.5 rounded " + (r.success ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700")}>
-                {r.success ? "✅" : "❌"} {p}: {r.success ? "Muvaffaqiyatli!" : r.error}
+              <div key={p} className={"text-sm px-3 py-2 rounded " + (r.success ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700")}>
+                {r.success
+                  ? "✅ Telegram muvaffaqiyatli ulandi! Kanalga test xabar yuborildi."
+                  : "❌ Xato: " + r.error
+                }
               </div>
             ))}
           </div>
         )}
+
+        <div className="mt-3 text-xs text-gray-400 space-y-0.5">
+          <p>Muammo bo'lsa tekshiring:</p>
+          <p>1. Railway Variables → <strong>TELEGRAM_BOT_TOKEN</strong> to'g'ri kiritilganmi?</p>
+          <p>2. Railway Variables → <strong>TELEGRAM_CHANNEL_ID</strong>: <code>@username</code> yoki <code>-1001234567890</code></p>
+          <p>3. Bot kanalga <strong>Administrator</strong> qilib qo'shilganmi?</p>
+        </div>
       </div>
 
       {/* Foydalanuvchilar */}
