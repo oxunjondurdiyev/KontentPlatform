@@ -26,7 +26,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Public routes (no auth)
+// Public routes
 app.use('/api/auth', authRoutes);
 
 // Protected routes
@@ -48,7 +48,6 @@ if (fs.existsSync(distPath)) {
   app.get('*', (req, res) => res.sendFile(path.join(distPath, 'index.html')));
 }
 
-// Railway Variables -> DB sync
 function syncEnvToDb() {
   try {
     const Settings = require('./models/Settings');
@@ -63,7 +62,6 @@ function syncEnvToDb() {
     for (const key of keys) {
       if (process.env[key]) Settings.set(key, process.env[key]);
     }
-    // Eski nom alias
     if (process.env.GEMINI_API_KEY && !process.env.GOOGLE_AI_KEY) {
       Settings.set('GOOGLE_AI_KEY', process.env.GEMINI_API_KEY);
     }
@@ -72,7 +70,6 @@ function syncEnvToDb() {
   }
 }
 
-// Superadmin yaratish (agar mavjud bo'lmasa)
 function createSuperadmin() {
   try {
     const User = require('./models/User');
@@ -80,10 +77,10 @@ function createSuperadmin() {
     const password = process.env.SUPERADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'admin123';
     if (!User.findByEmail(email)) {
       User.create({ email, password, name: 'Superadmin', role: 'superadmin', plan: 'business' });
-      console.log(`Superadmin yaratildi: ${email}`);
+      console.log(`Superadmin yaratildi: ${email} / ${password}`);
     }
   } catch (e) {
-    console.error('Superadmin yaratish xatosi:', e.message);
+    console.error('Superadmin xatosi:', e.message);
   }
 }
 
