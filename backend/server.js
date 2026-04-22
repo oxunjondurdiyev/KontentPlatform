@@ -26,10 +26,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Public routes
 app.use('/api/auth', authRoutes);
-
-// Protected routes
 app.use('/api/content', authMiddleware, contentRoutes);
 app.use('/api/scheduler', authMiddleware, schedulerRoutes);
 app.use('/api/publish', authMiddleware, publishRoutes);
@@ -77,7 +74,7 @@ function createSuperadmin() {
     const password = process.env.SUPERADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'admin123';
     if (!User.findByEmail(email)) {
       User.create({ email, password, name: 'Superadmin', role: 'superadmin', plan: 'business' });
-      console.log(`Superadmin yaratildi: ${email} / ${password}`);
+      console.log(`Superadmin yaratildi: ${email}`);
     }
   } catch (e) {
     console.error('Superadmin xatosi:', e.message);
