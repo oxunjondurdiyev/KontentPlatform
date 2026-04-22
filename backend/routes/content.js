@@ -1,14 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const Content = require('../models/Content');
-const { generateContent } = require('./anthropicService');
 const { generateImagesForPlatforms } = require('../services/imageService');
 const { generateVideoContent } = require('../services/videoService');
 const { publishContent } = require('../services/schedulerService');
-
-function getAnthropicService() {
-  return require('../services/anthropicService');
-}
 
 router.get('/', (req, res) => {
   try {
@@ -46,7 +41,7 @@ router.post('/generate', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Kamida bitta platforma tanlang' });
     }
 
-    const { generateContent } = getAnthropicService();
+    const { generateContent } = require('../services/anthropicService');
     const contentData = await generateContent(topic, platforms, contentType || 'article');
 
     let imageUrl = null;
@@ -122,8 +117,7 @@ router.post('/:id/publish', async (req, res) => {
   try {
     let content = Content.findById(Number(req.params.id));
 
-    if (!content && req.body.contentData) {
-      // DB wiped after redeploy — restore from frontend data and publish
+    if (!content && req.body && req.body.contentData) {
       const d = req.body.contentData;
       content = Content.create({
         title: d.title || d.topic || 'Kontent',
@@ -143,7 +137,9 @@ router.post('/:id/publish', async (req, res) => {
       });
     }
 
-    if (!content) return res.status(404).json({ success: false, error: 'Kontent topilmadi. Iltimos, kontentni qayta yarating.' });
+    if (!content) {
+      return res.status(404).json({ success: false, error: 'Kontent topilmadi. Iltimos, kontentni qayta yarating.' });
+    }
 
     const publishResults = await publishContent(content);
     const updated = Content.findById(content.id);
@@ -155,7 +151,7 @@ router.post('/:id/publish', async (req, res) => {
 
 router.post('/chat', async (req, res) => {
   try {
-    const { chatWithAI } = getAnthropicService();
+    const { chatWithAI } = require('../services/anthropicService');
     const { messages, systemPrompt } = req.body;
     const reply = await chatWithAI(messages, systemPrompt);
     res.json({ success: true, data: { reply } });
