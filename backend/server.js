@@ -74,7 +74,7 @@ function createSuperadmin() {
     const password = process.env.SUPERADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'admin123';
     if (!User.findByEmail(email)) {
       User.create({ email, password, name: 'Superadmin', role: 'superadmin', plan: 'business' });
-      console.log(`Superadmin yaratildi: ${email}`);
+      console.log('Superadmin yaratildi: ' + email);
     }
   } catch (e) {
     console.error('Superadmin xatosi:', e.message);
@@ -88,7 +88,7 @@ startScheduler();
 startAutonomousAgent();
 
 app.listen(PORT, () => {
-  console.log(`KontentBot Pro http://localhost:${PORT} da ishga tushdi`);
+  console.log('KontentBot Pro http://localhost:' + PORT + ' da ishga tushdi');
 });
 
 module.exports = app;
