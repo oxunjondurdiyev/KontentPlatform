@@ -2,7 +2,6 @@ const Database = require('better-sqlite3');
 const path = require('path');
 
 const DB_PATH = path.join(__dirname, '../../data/kontentbot.db');
-
 let db;
 
 function getDb() {
@@ -21,8 +20,21 @@ function initDatabase() {
   const database = getDb();
 
   database.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      name TEXT,
+      role TEXT DEFAULT 'user',
+      plan TEXT DEFAULT 'free',
+      is_active INTEGER DEFAULT 1,
+      subscription_expires DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS contents (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
       title TEXT NOT NULL,
       topic TEXT NOT NULL,
       platforms TEXT NOT NULL,
@@ -60,6 +72,7 @@ function initDatabase() {
 
     CREATE TABLE IF NOT EXISTS media_library (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
       filename TEXT NOT NULL,
       original_name TEXT,
       file_type TEXT NOT NULL,
@@ -87,21 +100,32 @@ function initDatabase() {
       used INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER REFERENCES users(id),
+      plan TEXT NOT NULL,
+      amount REAL,
+      currency TEXT DEFAULT 'UZS',
+      payment_method TEXT,
+      status TEXT DEFAULT 'pending',
+      starts_at DATETIME,
+      expires_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
-  // Standart autonomous sozlamalar
-  const setDefault = database.prepare(
-    `INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)`
-  );
+  // Migrate: add user_id to existing tables if missing
+  try { database.exec('ALTER TABLE contents ADD COLUMN user_id INTEGER'); } catch {}
+  try { database.exec('ALTER TABLE media_library ADD COLUMN user_id INTEGER'); } catch {}
+
+  // Default settings
+  const setDefault = database.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
   setDefault.run('autonomous_mode', 'false');
   setDefault.run('autonomous_schedule', JSON.stringify({
-    monday: ['09:00', '18:00'],
-    tuesday: ['09:00', '18:00'],
-    wednesday: ['09:00', '13:00', '18:00'],
-    thursday: ['09:00', '18:00'],
-    friday: ['09:00', '13:00', '20:00'],
-    saturday: ['10:00'],
-    sunday: []
+    monday: ['09:00', '18:00'], tuesday: ['09:00', '18:00'],
+    wednesday: ['09:00', '13:00', '18:00'], thursday: ['09:00', '18:00'],
+    friday: ['09:00', '13:00', '20:00'], saturday: ['10:00'], sunday: []
   }));
   setDefault.run('platform_config', JSON.stringify({
     platforms: ['instagram', 'telegram'],

@@ -12,6 +12,8 @@ const publishRoutes = require('./routes/publish');
 const mediaRoutes = require('./routes/media');
 const settingsRoutes = require('./routes/settings');
 const autonomousRoutes = require('./routes/autonomous');
+const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
 
 const { startScheduler } = require('./services/schedulerService');
 const { startAutonomousAgent } = require('./services/autonomousAgent');
@@ -24,12 +26,17 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Public routes (no auth)
+app.use('/api/auth', authRoutes);
+
+// Protected routes
 app.use('/api/content', authMiddleware, contentRoutes);
 app.use('/api/scheduler', authMiddleware, schedulerRoutes);
 app.use('/api/publish', authMiddleware, publishRoutes);
 app.use('/api/media', authMiddleware, mediaRoutes);
 app.use('/api/settings', authMiddleware, settingsRoutes);
 app.use('/api/autonomous', authMiddleware, autonomousRoutes);
+app.use('/api/admin', authMiddleware, adminRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
@@ -38,18 +45,14 @@ app.get('/api/health', (req, res) => {
 const distPath = path.join(__dirname, '../frontend/dist');
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'));
-  });
+  app.get('*', (req, res) => res.sendFile(path.join(distPath, 'index.html')));
 }
 
-// Railway Variables -> DB ga sync (har deploy da)
+// Railway Variables -> DB sync
 function syncEnvToDb() {
   try {
     const Settings = require('./models/Settings');
-
-    // To'g'ridan-to'g'ri mapping
-    const direct = [
+    const keys = [
       'GROQ_API_KEY', 'GOOGLE_AI_KEY',
       'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHANNEL_ID', 'ADMIN_TELEGRAM_CHAT_ID',
       'INSTAGRAM_ACCESS_TOKEN', 'INSTAGRAM_USER_ID',
@@ -57,23 +60,36 @@ function syncEnvToDb() {
       'FACEBOOK_PAGE_ACCESS_TOKEN', 'FACEBOOK_PAGE_ID',
       'KLING_API_KEY', 'RUNWAY_API_KEY', 'VIDEO_PROVIDER'
     ];
-    for (const key of direct) {
+    for (const key of keys) {
       if (process.env[key]) Settings.set(key, process.env[key]);
     }
-
-    // Eski nom aliaslar (GEMINI_API_KEY -> GOOGLE_AI_KEY)
+    // Eski nom alias
     if (process.env.GEMINI_API_KEY && !process.env.GOOGLE_AI_KEY) {
       Settings.set('GOOGLE_AI_KEY', process.env.GEMINI_API_KEY);
     }
-
-    console.log('Env vars DB ga sync qilindi');
   } catch (e) {
     console.error('Sync xato:', e.message);
   }
 }
 
+// Superadmin yaratish (agar mavjud bo'lmasa)
+function createSuperadmin() {
+  try {
+    const User = require('./models/User');
+    const email = process.env.SUPERADMIN_EMAIL || 'admin@kontentbot.uz';
+    const password = process.env.SUPERADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'admin123';
+    if (!User.findByEmail(email)) {
+      User.create({ email, password, name: 'Superadmin', role: 'superadmin', plan: 'business' });
+      console.log(`Superadmin yaratildi: ${email}`);
+    }
+  } catch (e) {
+    console.error('Superadmin yaratish xatosi:', e.message);
+  }
+}
+
 initDatabase();
 syncEnvToDb();
+createeSuperadmin();
 startScheduler();
 startAutonomousAgent();
 
