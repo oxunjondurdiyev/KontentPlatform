@@ -68,7 +68,7 @@ function createSuperadmin() {
 
 initDatabase();
 syncEnvToDb();
-createeSuperadmin();
+createSuperadmin();
 startScheduler();
 startAutonomousAgent();
 
