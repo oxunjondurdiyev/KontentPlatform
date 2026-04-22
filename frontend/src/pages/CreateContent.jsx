@@ -19,7 +19,7 @@ const IMAGE_STYLES = ['Professional', 'Minimalist', 'Colorful', 'Vintage', 'Mode
 
 export default function CreateContent() {
   const [topic, setTopic] = useState('');
-  const [platforms, setPlatforms] = useState(['instagram']);
+  const [platforms, setPlatforms] = useState(['telegram']);
   const [contentType, setContentType] = useState('article');
   const [imageStyle, setImageStyle] = useState('Professional');
   const [generateVideo, setGenerateVideo] = useState(false);
@@ -64,10 +64,15 @@ export default function CreateContent() {
     setPublishing(true);
     setPublishResults(null);
     try {
-      const res = await fetch(`/api/content/${result.id}/publish`, { method: 'POST' });
+      // contentData ni ham yuborish — DB o'chirilgan bo'lsa qayta tiklanadi
+      const res = await fetch(`/api/content/${result.id}/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentData: result })
+      });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      setResult(data.data);
+      setResult(prev => ({ ...prev, status: 'published' }));
       setPublishResults(data.publishResults || {});
     } catch (err) {
       setPublishResults({ _error: err.message });
@@ -162,11 +167,10 @@ export default function CreateContent() {
             <button onClick={() => { setResult(null); setPublishResults(null); }} className="btn-secondary text-sm">← Qaytish</button>
           </div>
 
-          {/* Rasm preview */}
           {result.image_url && (
             <div className="card">
               <h4 className="font-semibold mb-2">🖼️ AI Rasm <span className="text-xs text-gray-400 font-normal ml-1">
-                {result.imageProvider === 'pollinations' ? '(Pollinations.ai — bepul)' : '(Nano Banana)'}
+                {result.imageProvider === 'google' ? '(Google Gemini)' : '(Pollinations.ai)'}
               </span></h4>
               <img src={result.image_url} alt="AI rasm" className="w-full max-w-sm rounded-lg border"
                 onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }} />
@@ -174,7 +178,6 @@ export default function CreateContent() {
             </div>
           )}
 
-          {/* Video skript */}
           {result.video_prompt && (
             <div className="card">
               <h4 className="font-semibold mb-2">🎬 Video {result.videoPromptOnly ? 'Skript/Prompt' : 'URL'}</h4>
@@ -182,17 +185,15 @@ export default function CreateContent() {
                 ? <video src={result.video_url} controls className="w-full rounded-lg" />
                 : (
                   <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs text-gray-500 mb-1">Video AI prompti (Kling/Runway uchun ishlatish mumkin):</p>
+                    <p className="text-xs text-gray-500 mb-1">Video AI prompti:</p>
                     <p className="text-sm font-mono text-gray-700">{result.video_prompt}</p>
                   </div>
                 )}
             </div>
           )}
 
-          {/* Matn kontent preview */}
           <PreviewPanel content={result} />
 
-          {/* Nashr tugmalari */}
           <div className="card">
             <h4 className="font-semibold mb-3">📤 Nashr qilish</h4>
 
@@ -206,7 +207,7 @@ export default function CreateContent() {
                 </p>
                 <button onClick={handlePublish} disabled={publishing || result.status === 'published'}
                   className="btn-primary px-6 py-2.5">
-                  {publishing ? '⏳ Nashr qilinmoqda...' : result.status === 'published' ? '✅ Nashr qilindi' : '📤 Hamma Platformaga Nashr Qilish'}
+                  {publishing ? '⏳ Nashr qilinmoqda...' : result.status === 'published' ? '✅ Nashr qilindi' : '📤 Nashr Qilish'}
                 </button>
               </div>
             ) : (
@@ -215,13 +216,13 @@ export default function CreateContent() {
                 {publishResults._error && (
                   <p className="text-red-600 text-sm bg-red-50 px-3 py-2 rounded">❌ {publishResults._error}</p>
                 )}
-                {Object.entries(publishResults).filter(([k]) => k !== '_error').map(([platform, res]) => (
+                {Object.entries(publishResults).filter(([k]) => k !== '_error').map(([platform, r]) => (
                   <div key={platform} className={`flex items-center gap-2 px-3 py-2 rounded text-sm ${
-                    res.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                    r.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
                   }`}>
                     <span>{PLATFORM_ICONS[platform] || '📌'}</span>
                     <span className="font-medium capitalize">{platform}</span>
-                    <span>{res.success ? '✅ Muvaffaqiyatli' : `❌ ${res.error}`}</span>
+                    <span>{r.success ? '✅ Muvaffaqiyatli' : `❌ ${r.error}`}</span>
                   </div>
                 ))}
                 <button onClick={handlePublish} disabled={publishing} className="btn-secondary text-sm mt-2">

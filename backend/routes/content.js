@@ -1,10 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const Content = require('../models/Content');
-const { generateContent } = require('../services/anthropicService');
+const { generateContent } = require('./anthropicService');
 const { generateImagesForPlatforms } = require('../services/imageService');
 const { generateVideoContent } = require('../services/videoService');
 const { publishContent } = require('../services/schedulerService');
+
+function getAnthropicService() {
+  return require('../services/anthropicService');
+}
 
 router.get('/', (req, res) => {
   try {
@@ -37,26 +41,25 @@ router.get('/:id', (req, res) => {
 router.post('/generate', async (req, res) => {
   try {
     const { topic, platforms, contentType, imageStyle, generateVideo, scheduledAt } = req.body;
-
     if (!topic) return res.status(400).json({ success: false, error: 'Mavzu talab qilinadi' });
     if (!platforms || platforms.length === 0) {
       return res.status(400).json({ success: false, error: 'Kamida bitta platforma tanlang' });
     }
 
-    // AI matn yaratish
+    const { generateContent } = getAnthropicService();
     const contentData = await generateContent(topic, platforms, contentType || 'article');
 
-    // Rasm yaratish (Pollinations bepul fallback bilan)
     let imageUrl = null;
     let imagePrompt = null;
+    let imageProvider = null;
     try {
       const images = await generateImagesForPlatforms(topic, imageStyle, platforms);
       const firstImage = Object.values(images).find(i => i && i.imageUrl);
       imageUrl = firstImage?.imageUrl || null;
       imagePrompt = firstImage?.prompt || null;
+      imageProvider = firstImage?.provider || null;
     } catch {}
 
-    // Video yaratish (agar so'ralsa)
     let videoData = null;
     if (generateVideo) {
       try {
@@ -86,7 +89,7 @@ router.post('/generate', async (req, res) => {
       data: {
         ...saved,
         videoPromptOnly: videoData?.promptOnly || false,
-        imageProvider: imageUrl ? (imageUrl.includes('pollinations') ? 'pollinations' : 'nanobanana') : null
+        imageProvider: imageProvider || (imageUrl?.includes('pollinations') ? 'pollinations' : null)
       }
     });
   } catch (err) {
@@ -114,10 +117,33 @@ router.delete('/:id', (req, res) => {
   }
 });
 
+// Publish: DB da topilmasa, request body dan qayta tiklaydi (Railway ephemeral DB fix)
 router.post('/:id/publish', async (req, res) => {
   try {
-    const content = Content.findById(Number(req.params.id));
-    if (!content) return res.status(404).json({ success: false, error: 'Topilmadi' });
+    let content = Content.findById(Number(req.params.id));
+
+    if (!content && req.body.contentData) {
+      // DB wiped after redeploy — restore from frontend data and publish
+      const d = req.body.contentData;
+      content = Content.create({
+        title: d.title || d.topic || 'Kontent',
+        topic: d.topic || '',
+        platforms: d.platforms || [],
+        content_type: d.content_type || 'article',
+        instagram_content: d.instagram_content || null,
+        youtube_content: d.youtube_content || null,
+        facebook_content: d.facebook_content || null,
+        telegram_content: d.telegram_content || null,
+        image_url: d.image_url || null,
+        thumbnail_url: d.thumbnail_url || null,
+        video_url: d.video_url || null,
+        video_prompt: d.video_prompt || null,
+        status: 'draft',
+        scheduled_at: null
+      });
+    }
+
+    if (!content) return res.status(404).json({ success: false, error: 'Kontent topilmadi. Iltimos, kontentni qayta yarating.' });
 
     const publishResults = await publishContent(content);
     const updated = Content.findById(content.id);
@@ -129,7 +155,7 @@ router.post('/:id/publish', async (req, res) => {
 
 router.post('/chat', async (req, res) => {
   try {
-    const { chatWithAI } = require('../services/anthropicService');
+    const { chatWithAI } = getAnthropicService();
     const { messages, systemPrompt } = req.body;
     const reply = await chatWithAI(messages, systemPrompt);
     res.json({ success: true, data: { reply } });
