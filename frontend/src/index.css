@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Accent color CSS variables ─── */
+:root {
+  --acc-main: #2563eb;
+  --acc-light: #3b82f6;
+  --acc-css: 37 99 235;
+}
+[data-color="violet"]  { --acc-main:#7c3aed; --acc-light:#8b5cf6; --acc-css:124 58 237; }
+[data-color="emerald"] { --acc-main:#059669; --acc-light:#10b981; --acc-css:5 150 105; }
+[data-color="rose"]    { --acc-main:#e11d48; --acc-light:#f43f5e; --acc-css:225 29 72; }
+[data-color="amber"]   { --acc-main:#d97706; --acc-light:#f59e0b; --acc-css:217 119 6; }
+
 @layer base {
   body {
     @apply bg-gray-50 text-gray-900 font-sans transition-colors duration-200;
@@ -35,5 +46,21 @@
   }
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  /* ─── Accent utilities ─── */
+  .acc-btn {
+    background-color: var(--acc-main);
+    color: #fff;
+    transition: opacity 0.15s ease, transform 0.1s ease;
+  }
+  .acc-btn:hover:not(:disabled) { opacity: 0.88; }
+  .acc-btn:active:not(:disabled) { transform: scale(0.99); }
+  .acc-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .acc-text { color: var(--acc-main); }
+  .acc-text-light { color: var(--acc-light); }
+  .acc-ring:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgb(var(--acc-css) / 0.25);
   }
 }

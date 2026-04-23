@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-import { ThemeProvider, LanguageProvider } from './contexts/AppContexts';
+import { ThemeProvider, LanguageProvider, ColorProvider } from './contexts/AppContexts';
 import './index.css';
 
 // Barcha /api so'rovlarga avtomatik JWT token qo'shadi
@@ -20,10 +20,12 @@ window.fetch = (url, options = {}) => {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <ThemeProvider>
-    <LanguageProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </LanguageProvider>
+    <ColorProvider>
+      <LanguageProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </LanguageProvider>
+    </ColorProvider>
   </ThemeProvider>
 );

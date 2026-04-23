@@ -1,7 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Settings = require('../models/Settings');
 const { getDb } = require('../models/database');
+
+const DEFAULT_PLAN_PRICING = {
+  starter:  { amount: 99000,  limit: 30,  features_uz: ['30 kontent/oy', 'Barcha platformalar', 'AI rasm'], features_ru: ['30 контент/мес', 'Все платформы', 'AI изображение'], features_en: ['30 content/mo', 'All platforms', 'AI image'] },
+  pro:      { amount: 249000, limit: 100, features_uz: ['100 kontent/oy', 'Avtonom Agent', 'Google Imagen'], features_ru: ['100 контент/мес', 'Авт. агент', 'Google Imagen'], features_en: ['100 content/mo', 'Auto Agent', 'Google Imagen'] },
+  business: { amount: 599000, limit: -1,  features_uz: ['Cheksiz kontent', 'API kirish', 'Maxsus yordam'], features_ru: ['Безлимит', 'API доступ', 'Выделенная под.'], features_en: ['Unlimited', 'API access', 'Dedicated support'] },
+};
 
 function superadminOnly(req, res, next) {
   if (req.user?.role !== 'superadmin') {
@@ -121,6 +128,25 @@ router.post('/test-platform', async (req, res) => {
     steps.push('✅ Test xabar yuborildi!');
 
     res.json({ success: true, steps, results: { telegram: { success: true } } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Plan pricing management
+router.get('/plans', (req, res) => {
+  try {
+    const stored = Settings.get('plan_pricing');
+    res.json({ success: true, data: stored || DEFAULT_PLAN_PRICING });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.put('/plans', (req, res) => {
+  try {
+    Settings.set('plan_pricing', req.body);
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

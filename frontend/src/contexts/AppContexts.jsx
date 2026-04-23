@@ -3,8 +3,36 @@ import { getTranslation } from '../i18n/translations';
 
 const ThemeContext = createContext({});
 const LanguageContext = createContext({});
+const ColorContext = createContext({});
 export const useTheme = () => useContext(ThemeContext);
 export const useLanguage = () => useContext(LanguageContext);
+export const useColor = () => useContext(ColorContext);
+
+const COLOR_DATA = {
+  blue:    { main:'#2563eb', light:'#3b82f6', css:'37 99 235' },
+  violet:  { main:'#7c3aed', light:'#8b5cf6', css:'124 58 237' },
+  emerald: { main:'#059669', light:'#10b981', css:'5 150 105' },
+  rose:    { main:'#e11d48', light:'#f43f5e', css:'225 29 72' },
+  amber:   { main:'#d97706', light:'#f59e0b', css:'217 119 6' },
+};
+
+export function ColorProvider({ children }) {
+  const [color, setColor] = useState(() => localStorage.getItem('kb_color') || 'blue');
+  useEffect(() => {
+    localStorage.setItem('kb_color', color);
+    document.documentElement.setAttribute('data-color', color);
+    const c = COLOR_DATA[color] || COLOR_DATA.blue;
+    document.documentElement.style.setProperty('--acc-main', c.main);
+    document.documentElement.style.setProperty('--acc-light', c.light);
+    document.documentElement.style.setProperty('--acc-css', c.css);
+  }, [color]);
+  const colors = COLOR_DATA[color] || COLOR_DATA.blue;
+  return (
+    <ColorContext.Provider value={{ color, setColor, colors }}>
+      {children}
+    </ColorContext.Provider>
+  );
+}
 
 export function ThemeProvider({ children }) {
   const [mode, setMode] = useState(() => localStorage.getItem('kb_theme') || 'system');

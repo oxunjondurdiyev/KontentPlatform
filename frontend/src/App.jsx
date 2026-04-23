@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Pricing from './pages/Pricing';
 import AdminDashboard from './pages/AdminDashboard';
+import SuperAdmin from './pages/SuperAdmin';
 import { useTheme, useLanguage } from './contexts/AppContexts';
 
 export const AuthContext = createContext({});
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
         <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/superadmin" element={user?.role === 'superadmin' ? <SuperAdmin /> : <Navigate to="/" replace />} />
         <Route path="/*" element={user ? <MainLayout /> : <Navigate to="/login" replace />} />
       </Routes>
     </AuthContext.Provider>
@@ -103,7 +105,10 @@ function MainLayout() {
     { to: '/media', label: t('nav.media') },
     { to: '/autonomous', label: t('nav.autonomous') },
     { to: '/settings', label: t('nav.settings') },
-    ...(user?.role === 'superadmin' ? [{ to: '/admin', label: t('nav.admin') }] : [])
+    ...(user?.role === 'superadmin' ? [
+      { to: '/admin', label: t('nav.admin') },
+      { to: '/superadmin', label: '👑 SuperAdmin' },
+    ] : [])
   ];
 
   return (
