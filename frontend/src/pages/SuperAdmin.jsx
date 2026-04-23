@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../App';
-import { useColor } from '../contexts/AppContexts';
+import { useColor, useTheme, useLanguage } from '../contexts/AppContexts';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 const PLAN_LABELS = { free:'Bepul', starter:'Starter', pro:'Pro', business:'Biznes' };
@@ -375,9 +375,63 @@ function PlansTab({ colors }) {
   );
 }
 
+// ─── Telegram Tab ────────────────────────────────────────────────────────────
+function TelegramTab() {
+  const [testing, setTesting] = useState(false);
+  const [steps, setSteps] = useState([]);
+  const [result, setResult] = useState(null);
+
+  const runTest = async () => {
+    setTesting(true); setResult(null); setSteps([]);
+    try {
+      const r = await fetch('/api/admin/test-platform', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platform: 'telegram' }),
+      });
+      const d = await r.json();
+      setSteps(d.steps || []); setResult(d.results);
+    } finally { setTesting(false); }
+  };
+
+  return (
+    <div className="p-6 space-y-5 max-w-lg">
+      <div>
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Telegram Diagnostika</h2>
+        <p className="text-sm text-gray-500 mt-0.5">Bot ulanishini tekshirish</p>
+      </div>
+      <button onClick={runTest} disabled={testing}
+        className="acc-btn px-5 py-2.5 rounded-xl text-sm font-semibold shadow">
+        {testing ? '⏳ Tekshirilmoqda…' : '✈️ Telegram Test'}
+      </button>
+      {steps.length > 0 && (
+        <div className="space-y-1">
+          {steps.map((s, i) => (
+            <div key={i} className="text-sm text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/40 px-3 py-2 rounded-lg">{s}</div>
+          ))}
+        </div>
+      )}
+      {result && Object.entries(result).map(([p, r]) => (
+        <div key={p} className={`text-sm px-4 py-3 rounded-xl border ${
+          r.success
+            ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
+            : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800'
+        }`}>
+          {r.success ? '✅ Telegram muvaffaqiyatli ulandi!' : '❌ ' + r.error}
+        </div>
+      ))}
+      <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-1">
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Muammo bo'lsa tekshiring</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">1. Railway Variables → TELEGRAM_BOT_TOKEN to'g'ri kiritilganmi?</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">2. TELEGRAM_CHANNEL_ID: @username yoki -1001234567890</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">3. Bot kanalga Administrator qilib qo'shilganmi?</p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main SuperAdmin ─────────────────────────────────────────────────────────
 const NAV = [
-  { id:'overview', label:'Ko\'rsatkichlar', icon:(
+  { id:'overview', label:"Ko'rsatkichlar", icon:(
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
   )},
   { id:'users', label:'Foydalanuvchilar', icon:(
@@ -386,12 +440,17 @@ const NAV = [
   { id:'plans', label:'Tariflar', icon:(
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
   )},
+  { id:'telegram', label:'Telegram', icon:(
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+  )},
 ];
 
 export default function SuperAdmin() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { colors } = useColor();
+  const { mode, setMode } = useTheme();
+  const { language, setLanguage } = useLanguage();
   const [tab, setTab] = useState('overview');
   const [stats, setStats] = useState(null);
 
@@ -438,25 +497,45 @@ export default function SuperAdmin() {
         </nav>
 
         {/* Footer */}
-        <div className="p-3 border-t border-gray-100 dark:border-gray-800 space-y-1">
-          <button onClick={() => navigate('/')}
-            className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12"/>
-            </svg>
-            Bosh sahifaga
-          </button>
-          <div className="px-3 py-1">
+        <div className="p-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
+          {/* Theme + Lang mini controls */}
+          <div className="flex items-center gap-1 px-1">
+            {[['light','☀'],['dark','◑'],['system','⊙']].map(([k,i]) => (
+              <button key={k} onClick={() => setMode(k)}
+                className={`w-7 h-7 flex items-center justify-center rounded-lg text-sm transition-all ${
+                  mode===k ? 'text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
+                }`}
+                style={mode===k ? { backgroundColor: colors.main } : {}}>
+                {i}
+              </button>
+            ))}
+            <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-0.5" />
+            {['uz','ru','en'].map(lng => (
+              <button key={lng} onClick={() => setLanguage(lng)}
+                className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition-all ${
+                  language===lng ? 'text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
+                }`}
+                style={language===lng ? { backgroundColor: colors.main } : {}}>
+                {lng.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          <div className="px-1">
             <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>
+            <button onClick={() => { logout(); navigate('/login'); }}
+              className="text-[10px] text-red-400 hover:text-red-500 transition-colors mt-0.5">
+              Chiqish
+            </button>
           </div>
         </div>
       </aside>
 
       {/* Main */}
       <main className="flex-1 overflow-auto">
-        {tab === 'overview' && <OverviewTab stats={stats} />}
-        {tab === 'users'    && <UsersTab colors={colors} />}
-        {tab === 'plans'    && <PlansTab colors={colors} />}
+        {tab === 'overview'  && <OverviewTab stats={stats} />}
+        {tab === 'users'     && <UsersTab colors={colors} />}
+        {tab === 'plans'     && <PlansTab colors={colors} />}
+        {tab === 'telegram'  && <TelegramTab />}
       </main>
     </div>
   );

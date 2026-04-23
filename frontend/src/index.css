@@ -2,16 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Accent color CSS variables ─── */
+/* ════════════════════════════════════════════════════
+   ACCENT COLOR SYSTEM
+   Changing data-color on <html> recolors the entire
+   platform — nav active state, buttons, links, badges.
+   ════════════════════════════════════════════════════ */
 :root {
   --acc-main: #2563eb;
   --acc-light: #3b82f6;
-  --acc-css: 37 99 235;
+  --acc-pale:  #dbeafe;
+  --acc-dark:  #1d4ed8;
+  --acc-css:   37 99 235;
 }
-[data-color="violet"]  { --acc-main:#7c3aed; --acc-light:#8b5cf6; --acc-css:124 58 237; }
-[data-color="emerald"] { --acc-main:#059669; --acc-light:#10b981; --acc-css:5 150 105; }
-[data-color="rose"]    { --acc-main:#e11d48; --acc-light:#f43f5e; --acc-css:225 29 72; }
-[data-color="amber"]   { --acc-main:#d97706; --acc-light:#f59e0b; --acc-css:217 119 6; }
+[data-color="violet"]  { --acc-main:#7c3aed; --acc-light:#8b5cf6; --acc-pale:#ede9fe; --acc-dark:#6d28d9; --acc-css:124 58 237; }
+[data-color="emerald"] { --acc-main:#059669; --acc-light:#10b981; --acc-pale:#d1fae5; --acc-dark:#047857; --acc-css:5 150 105; }
+[data-color="rose"]    { --acc-main:#e11d48; --acc-light:#f43f5e; --acc-pale:#ffe4e6; --acc-dark:#be123c; --acc-css:225 29 72; }
+[data-color="amber"]   { --acc-main:#d97706; --acc-light:#f59e0b; --acc-pale:#fef3c7; --acc-dark:#b45309; --acc-css:217 119 6; }
+
+/* ─── Platform-wide Tailwind blue → accent overrides ─── */
+/* These selectors remap every hardcoded bg-blue-* / text-blue-* in the app */
+
+/* Solid backgrounds */
+[data-color="violet"]  .bg-blue-600, [data-color="violet"]  .hover\:bg-blue-700:hover { background-color: #7c3aed !important; }
+[data-color="violet"]  .bg-blue-700 { background-color: #6d28d9 !important; }
+[data-color="violet"]  .bg-blue-400 { background-color: #a78bfa !important; }
+[data-color="violet"]  .bg-blue-50  { background-color: #f5f3ff !important; }
+
+[data-color="emerald"] .bg-blue-600, [data-color="emerald"] .hover\:bg-blue-700:hover { background-color: #059669 !important; }
+[data-color="emerald"] .bg-blue-700 { background-color: #047857 !important; }
+[data-color="emerald"] .bg-blue-400 { background-color: #34d399 !important; }
+[data-color="emerald"] .bg-blue-50  { background-color: #ecfdf5 !important; }
+
+[data-color="rose"]    .bg-blue-600, [data-color="rose"]    .hover\:bg-blue-700:hover { background-color: #e11d48 !important; }
+[data-color="rose"]    .bg-blue-700 { background-color: #be123c !important; }
+[data-color="rose"]    .bg-blue-400 { background-color: #fb7185 !important; }
+[data-color="rose"]    .bg-blue-50  { background-color: #fff1f2 !important; }
+
+[data-color="amber"]   .bg-blue-600, [data-color="amber"]   .hover\:bg-blue-700:hover { background-color: #d97706 !important; }
+[data-color="amber"]   .bg-blue-700 { background-color: #b45309 !important; }
+[data-color="amber"]   .bg-blue-400 { background-color: #fbbf24 !important; }
+[data-color="amber"]   .bg-blue-50  { background-color: #fffbeb !important; }
+
+/* Text colors */
+[data-color="violet"]  .text-blue-600 { color: #7c3aed !important; }
+[data-color="violet"]  .text-blue-400 { color: #a78bfa !important; }
+[data-color="violet"]  .text-blue-300 { color: #c4b5fd !important; }
+[data-color="violet"]  .hover\:text-blue-500:hover, [data-color="violet"] .hover\:text-blue-300:hover { color: #8b5cf6 !important; }
+
+[data-color="emerald"] .text-blue-600 { color: #059669 !important; }
+[data-color="emerald"] .text-blue-400 { color: #34d399 !important; }
+[data-color="emerald"] .text-blue-300 { color: #6ee7b7 !important; }
+[data-color="emerald"] .hover\:text-blue-500:hover, [data-color="emerald"] .hover\:text-blue-300:hover { color: #10b981 !important; }
+
+[data-color="rose"]    .text-blue-600 { color: #e11d48 !important; }
+[data-color="rose"]    .text-blue-400 { color: #fb7185 !important; }
+[data-color="rose"]    .text-blue-300 { color: #fda4af !important; }
+[data-color="rose"]    .hover\:text-blue-500:hover, [data-color="rose"]    .hover\:text-blue-300:hover { color: #f43f5e !important; }
+
+[data-color="amber"]   .text-blue-600 { color: #d97706 !important; }
+[data-color="amber"]   .text-blue-400 { color: #fbbf24 !important; }
+[data-color="amber"]   .text-blue-300 { color: #fcd34d !important; }
+[data-color="amber"]   .hover\:text-blue-500:hover, [data-color="amber"]   .hover\:text-blue-300:hover { color: #f59e0b !important; }
+
+/* Border colors */
+[data-color="violet"]  .border-blue-400, [data-color="violet"]  .border-blue-500 { border-color: #8b5cf6 !important; }
+[data-color="emerald"] .border-blue-400, [data-color="emerald"] .border-blue-500 { border-color: #10b981 !important; }
+[data-color="rose"]    .border-blue-400, [data-color="rose"]    .border-blue-500 { border-color: #f43f5e !important; }
+[data-color="amber"]   .border-blue-400, [data-color="amber"]   .border-blue-500 { border-color: #f59e0b !important; }
+
+/* Focus rings */
+[data-color="violet"]  .focus\:ring-blue-500:focus  { --tw-ring-color: #8b5cf6; }
+[data-color="emerald"] .focus\:ring-blue-500:focus  { --tw-ring-color: #10b981; }
+[data-color="rose"]    .focus\:ring-blue-500:focus  { --tw-ring-color: #f43f5e; }
+[data-color="amber"]   .focus\:ring-blue-500:focus  { --tw-ring-color: #f59e0b; }
+
+/* Dark mode bg accents (bg-blue-900\/30 etc.) */
+[data-color="violet"]  .bg-blue-900\/30  { background-color: rgb(109 40 217 / 0.3) !important; }
+[data-color="emerald"] .bg-blue-900\/30  { background-color: rgb(4 120 87 / 0.3)   !important; }
+[data-color="rose"]    .bg-blue-900\/30  { background-color: rgb(190 18 60 / 0.3)  !important; }
+[data-color="amber"]   .bg-blue-900\/30  { background-color: rgb(180 83 9 / 0.3)   !important; }
 
 @layer base {
   body {
@@ -24,29 +93,24 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: var(--acc-main);
   }
+  .btn-primary:hover:not(:disabled) { background-color: var(--acc-dark); }
   .btn-secondary {
     @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
   }
-  .dark .btn-secondary {
-    @apply bg-gray-700 hover:bg-gray-600 text-gray-100;
-  }
+  .dark .btn-secondary { @apply bg-gray-700 hover:bg-gray-600 text-gray-100; }
   .card {
     @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 transition-colors duration-200;
   }
-  .dark .card {
-    @apply bg-gray-900 border-gray-800 text-gray-100;
-  }
+  .dark .card { @apply bg-gray-900 border-gray-800 text-gray-100; }
   .input {
-    @apply w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200;
+    @apply w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-transparent transition-colors duration-200;
   }
-  .dark .input {
-    @apply bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500;
-  }
-  .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
-  }
+  .input:focus { box-shadow: 0 0 0 2px rgb(var(--acc-css) / 0.3); }
+  .dark .input { @apply bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500; }
+  .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
 
   /* ─── Accent utilities ─── */
   .acc-btn {
@@ -57,8 +121,10 @@
   .acc-btn:hover:not(:disabled) { opacity: 0.88; }
   .acc-btn:active:not(:disabled) { transform: scale(0.99); }
   .acc-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .acc-text { color: var(--acc-main); }
+  .acc-text       { color: var(--acc-main); }
   .acc-text-light { color: var(--acc-light); }
+  .acc-bg         { background-color: var(--acc-pale); }
+  .acc-border     { border-color: var(--acc-main); }
   .acc-ring:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgb(var(--acc-css) / 0.25);
