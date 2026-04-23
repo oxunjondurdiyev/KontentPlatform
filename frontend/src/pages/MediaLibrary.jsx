@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useLanguage } from '../contexts/AppContexts';
 
 export default function MediaLibrary() {
+  const { t } = useLanguage();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -8,10 +10,7 @@ export default function MediaLibrary() {
 
   const load = () => {
     setLoading(true);
-    fetch('/api/media')
-      .then(r => r.json())
-      .then(d => setItems(d.data || []))
-      .finally(() => setLoading(false));
+    fetch('/api/media').then(r => r.json()).then(d => setItems(d.data || [])).finally(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, []);
@@ -28,7 +27,7 @@ export default function MediaLibrary() {
       if (!data.success) throw new Error(data.error);
       load();
     } catch (err) {
-      alert('Yuklashda xato: ' + err.message);
+      alert(t('media.uploadError') + ': ' + err.message);
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -36,7 +35,7 @@ export default function MediaLibrary() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("O'chirishni tasdiqlaysizmi?")) return;
+    if (!confirm(t('media.confirmDelete'))) return;
     await fetch(`/api/media/${id}`, { method: 'DELETE' });
     load();
   };
@@ -51,25 +50,25 @@ export default function MediaLibrary() {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">🖼️ Media Kutubxona</h2>
+        <h2 className="text-2xl font-bold dark:text-gray-100">🖼️ {t('media.title')}</h2>
         <label className="btn-primary cursor-pointer">
-          {uploading ? '⏳ Yuklanmoqda...' : '⬆️ Fayl Yuklash'}
+          {uploading ? '⏳ ' + t('media.uploading') : '⬆️ ' + t('media.upload')}
           <input ref={fileRef} type="file" className="hidden" accept="image/*,video/*" onChange={handleUpload} disabled={uploading} />
         </label>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Yuklanmoqda...</div>
+        <div className="text-center py-12 text-gray-400">{t('common.loading')}</div>
       ) : items.length === 0 ? (
-        <div className="card text-center py-12 text-gray-400">
+        <div className="card text-center py-12 text-gray-400 dark:text-gray-500">
           <p className="text-4xl mb-3">🖼️</p>
-          <p>Media kutubxona bo'sh</p>
-          <p className="text-sm mt-1">Rasm yoki video yuklang</p>
+          <p>{t('media.empty')}</p>
+          <p className="text-sm mt-1">{t('media.emptyHint')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {items.map(item => (
-            <div key={item.id} className="group relative bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
+            <div key={item.id} className="group relative bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
               {item.file_type === 'image' ? (
                 <img src={item.url} alt={item.original_name} className="w-full h-36 object-cover" />
               ) : (
@@ -78,18 +77,17 @@ export default function MediaLibrary() {
                 </div>
               )}
               <div className="p-2">
-                <p className="text-xs font-medium truncate text-gray-700">{item.original_name}</p>
-                <p className="text-xs text-gray-400">{formatSize(item.file_size)}</p>
+                <p className="text-xs font-medium truncate text-gray-700 dark:text-gray-300">{item.original_name}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{formatSize(item.file_size)}</p>
               </div>
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <a href={item.url} target="_blank" rel="noreferrer"
                   className="bg-white text-gray-800 text-xs px-2 py-1 rounded-lg font-medium">
-                  Ko'rish
+                  {t('media.view')}
                 </a>
-                <button
-                  onClick={() => handleDelete(item.id)}
+                <button onClick={() => handleDelete(item.id)}
                   className="bg-red-500 text-white text-xs px-2 py-1 rounded-lg font-medium">
-                  O'chir
+                  {t('media.delete')}
                 </button>
               </div>
             </div>
