@@ -1,214 +1,56 @@
-// 3 tilli tarjimalar: O'zbek, Rus, Ingliz
-
 export const translations = {
   uz: {
-    common: {
-      save: "Saqlash",
-      cancel: "Bekor qilish",
-      delete: "O'chirish",
-      edit: "Tahrirlash",
-      loading: "Yuklanmoqda...",
-      error: "Xato",
-      success: "Muvaffaqiyatli",
-      back: "Orqaga",
-      next: "Keyingi",
-      yes: "Ha",
-      no: "Yo'q",
-      search: "Qidirish",
-      submit: "Yuborish",
-      logout: "Chiqish",
-      upgrade: "Yangilash",
-      welcome: "Xush kelibsiz"
-    },
-    nav: {
-      dashboard: "🏠 Bosh panel",
-      create: "✍️ Yaratish",
-      schedule: "📅 Jadval",
-      media: "🖼️ Media",
-      autonomous: "🤖 Avtonom Agent",
-      settings: "⚙️ Sozlamalar",
-      admin: "👑 Admin Panel",
-      subtitle: "AI Kontent Platformasi"
-    },
-    auth: {
-      login: "Kirish",
-      register: "Ro'yxatdan o'tish",
-      email: "Email",
-      password: "Parol",
-      confirmPassword: "Parolni tasdiqlash",
-      name: "Ism",
-      lastName: "Familya",
-      phone: "Telefon raqam",
-      passport: "Passport seriya va raqam",
-      loginTitle: "Hisobingizga kiring",
-      registerTitle: "Yangi hisob yaratish",
-      noAccount: "Hisob yo'qmi?",
-      hasAccount: "Hisob bormi?",
-      pricesAndPlans: "Narxlar va rejalar",
-      privacyNotice: "Ma'lumotlaringiz xavfsiz saqlanadi va uchinchi shaxslarga berilmaydi.",
-      passwordsMatch: "Parollar mos emas",
-      passwordTooShort: "Parol kamida 6 belgi",
-      invalidPhone: "Telefon raqam noto'g'ri",
-      registering: "Ro'yxatdan o'tilmoqda...",
-      loggingIn: "Kirish..."
-    },
-    plan: {
-      free: "Bepul",
-      starter: "Starter",
-      pro: "Pro",
-      business: "Biznes"
-    },
-    theme: {
-      light: "Yorug'",
-      dark: "Qorong'i",
-      toggle: "Mavzuni almashtirish"
-    },
-    language: {
-      label: "Til",
-      uz: "O'zbek",
-      ru: "Ruscha",
-      en: "Inglizcha"
-    }
+    common: { save: "Saqlash", cancel: "Bekor qilish", delete: "O'chirish", edit: "Tahrirlash", loading: "Yuklanmoqda...", error: "Xato", success: "Muvaffaqiyatli", back: "Orqaga", next: "Keyingi", yes: "Ha", no: "Yo'q", search: "Qidirish", submit: "Yuborish", logout: "Chiqish", upgrade: "Yangilash", welcome: "Xush kelibsiz" },
+    nav: { dashboard: "🏠 Bosh panel", create: "✍️ Yaratish", schedule: "📅 Jadval", media: "🖼️ Media", autonomous: "🤖 Avtonom Agent", settings: "⚙️ Sozlamalar", admin: "👑 Admin Panel", subtitle: "AI Kontent Platformasi" },
+    auth: { login: "Kirish", register: "Ro'yxatdan o'tish", email: "Email", password: "Parol", confirmPassword: "Parolni tasdiqlash", name: "Ism", lastName: "Familya", phone: "Telefon raqam", passport: "Passport seriya va raqam", loginTitle: "Hisobingizga kiring", registerTitle: "Yangi hisob yaratish", noAccount: "Hisob yo'qmi?", hasAccount: "Hisob bormi?", pricesAndPlans: "Narxlar va rejalar", privacyNotice: "Ma'lumotlaringiz xavfsiz saqlanadi va uchinchi shaxslarga berilmaydi.", passwordsMatch: "Parollar mos emas", passwordTooShort: "Parol kamida 6 belgi", invalidPhone: "Telefon raqam noto'g'ri", registering: "Ro'yxatdan o'tilmoqda...", loggingIn: "Kirish..." },
+    plan: { free: "Bepul", starter: "Starter", pro: "Pro", business: "Biznes" },
+    theme: { light: "Yorug'", dark: "Qorong'i", toggle: "Mavzu" },
+    language: { label: "Til", uz: "O'zbek", ru: "Ruscha", en: "Inglizcha" },
+    status: { published: "Nashr qilindi", scheduled: "Rejalashtirilgan", draft: "Qoralama", failed: "Xato" },
+    dashboard: { title: "Bosh Panel", subtitle: "KontentBot Pro — O'zbek AI Kontent Platformasi", newContent: "Yangi Kontent", total: "Jami", published: "Nashr qilindi", scheduled: "Rejalashtirilgan", draft: "Qoralama", recent: "So'nggi Kontentlar", viewAll: "Barchasini ko'rish →", empty: "Hali kontent yo'q.", firstContent: "Birinchi kontentni yarating →" },
+    schedule: { title: "Kontent Jadvali", all: "Barchasi", draft: "Qoralama", scheduled: "Rejalashtirilgan", published: "Nashr qilindi", failed: "Xato", publish: "Nashr", delete: "O'chir", confirmDelete: "O'chirishni tasdiqlaysizmi?", empty: "Kontent topilmadi", created: "Yaratildi", scheduledAt: "Rejalashtirilgan", publishedAt: "Nashr", error: "Xato" },
+    settings: { title: "Sozlamalar", tipTitle: "Kalitlarni doimiy saqlash", tipText: "Quyida kiritilgan kalitlar DB da saqlanadi. Deploy bo'lganda yo'qolmasligi uchun Railway Variables ga ham qo'shing.", save: "Saqlash", saving: "Saqlanmoqda...", saved: "Saqlandi!", savedHint: "saqlangan" },
+    media: { title: "Media Kutubxona", upload: "Fayl Yuklash", uploading: "Yuklanmoqda...", view: "Ko'rish", delete: "O'chir", empty: "Media kutubxona bo'sh", emptyHint: "Rasm yoki video yuklang", confirmDelete: "O'chirishni tasdiqlaysizmi?", uploadError: "Yuklashda xato" },
+    pricing: { title: "KontentBot Pro", subtitle: "O'zbekiston uchun AI kontent platformasi", popular: "⭐ Mashhur", current: "✅ Joriy rejangiz", start: "Boshlash", pay: "To'lash", paymentTitle: "💳 To'lov usullari", activationNote: "To'lov tasdiqlangandan so'ng 1 soat ichida hisobingiz faollashtiriladi.", backHome: "← Bosh sahifaga qaytish", backLogin: "← Kirish", perMonth: "so'm/oy", free: "Bepul" },
+    admin: { title: "👑 Admin Panel", totalUsers: "Jami foydalanuvchi", activeUsers: "Faol", paidUsers: "Obunachi", totalContents: "Jami kontent", thisMonth: "Bu oy", diagnostics: "📡 Telegram Diagnostika", testBtn: "✈️ Telegram Test", testing: "⏳ Tekshirilmoqda...", users: "👥 Foydalanuvchilar", nameSurname: "Ism Familya", emailPhone: "Email / Telefon", passport: "Passport", plan: "Reja", status: "Status", subscription: "Obuna", actions: "Amal", activeStatus: "✅ Faol", blockedStatus: "❌ Bloklangan", confirmDelete: "Foydalanuvchini o'chirish?", telegramOk: "✅ Telegram muvaffaqiyatli ulandi!", telegramHints: "Muammo bo'lsa tekshiring", hint1: "Railway Variables → TELEGRAM_BOT_TOKEN to'g'ri kiritilganmi?", hint2: "Railway Variables → TELEGRAM_CHANNEL_ID: @username yoki -1001234567890", hint3: "Bot kanalga Administrator qilib qo'shilganmi?" },
+    create: { title: "✍️ Yangi Kontent Yaratish", topic: "Mavzu", topicPlaceholder: "Masalan: O'zbekistonda elektr avtomobillar rivoji...", platforms: "Platformalar", contentType: "Kontent turi", imageStyle: "Rasm uslubi", videoScript: "Video skript ham yaratish", scheduleTitle: "Nashr vaqti", now: "Hozir", later: "Keyinroq", generate: "🤖 AI bilan Yaratish", generating: "⏳ AI kontent yaratmoqda...", created: "✅ Kontent yaratildi!", back: "← Qaytish", imageTitle: "🖼️ AI Rasm", videoTitle: "🎬 Video", videoPromptHint: "Video AI prompti:", publishTitle: "📤 Nashr qilish", publishBtn: "📤 Nashr Qilish", publishedBtn: "✅ Nashr qilindi", publishing: "⏳ Nashr qilinmoqda...", publishWarning: "⚠️ Nashr qilish uchun Sozlamalar sahifasida tegishli API kalitlarni kiriting", publishResultsTitle: "Nashr natijalari:", successResult: "✅ Muvaffaqiyatli", retry: "🔄 Qayta urinish", platformsNote: "Kontent tanlangan platformalarga nashr qilinadi", enterTopic: "Mavzu kiriting", selectPlatform: "Kamida bitta platforma tanlang", google: "(Google Gemini)", pollinations: "(Pollinations.ai)" },
+    contentTypes: { article: "Maqola", video: "Video", image_post: "Rasm+Izoh", story: "Story" }
   },
 
   ru: {
-    common: {
-      save: "Сохранить",
-      cancel: "Отмена",
-      delete: "Удалить",
-      edit: "Редактировать",
-      loading: "Загрузка...",
-      error: "Ошибка",
-      success: "Успешно",
-      back: "Назад",
-      next: "Далее",
-      yes: "Да",
-      no: "Нет",
-      search: "Поиск",
-      submit: "Отправить",
-      logout: "Выйти",
-      upgrade: "Обновить",
-      welcome: "Добро пожаловать"
-    },
-    nav: {
-      dashboard: "🏠 Главная",
-      create: "✍️ Создать",
-      schedule: "📅 Расписание",
-      media: "🖼️ Медиа",
-      autonomous: "🤖 Автономный агент",
-      settings: "⚙️ Настройки",
-      admin: "👑 Админ панель",
-      subtitle: "AI Платформа контента"
-    },
-    auth: {
-      login: "Войти",
-      register: "Регистрация",
-      email: "Эл. почта",
-      password: "Пароль",
-      confirmPassword: "Подтвердите пароль",
-      name: "Имя",
-      lastName: "Фамилия",
-      phone: "Номер телефона",
-      passport: "Серия и номер паспорта",
-      loginTitle: "Войдите в ваш аккаунт",
-      registerTitle: "Создание нового аккаунта",
-      noAccount: "Нет аккаунта?",
-      hasAccount: "Есть аккаунт?",
-      pricesAndPlans: "Цены и тарифы",
-      privacyNotice: "Ваши данные в безопасности и не передаются третьим лицам.",
-      passwordsMatch: "Пароли не совпадают",
-      passwordTooShort: "Пароль минимум 6 символов",
-      invalidPhone: "Некорректный номер телефона",
-      registering: "Регистрация...",
-      loggingIn: "Вход..."
-    },
-    plan: {
-      free: "Бесплатный",
-      starter: "Старт",
-      pro: "Про",
-      business: "Бизнес"
-    },
-    theme: {
-      light: "Светлая",
-      dark: "Тёмная",
-      toggle: "Переключить тему"
-    },
-    language: {
-      label: "Язык",
-      uz: "Узбекский",
-      ru: "Русский",
-      en: "Английский"
-    }
+    common: { save: "Сохранить", cancel: "Отмена", delete: "Удалить", edit: "Редактировать", loading: "Загрузка...", error: "Ошибка", success: "Успешно", back: "Назад", next: "Далее", yes: "Да", no: "Нет", search: "Поиск", submit: "Отправить", logout: "Выйти", upgrade: "Обновить", welcome: "Добро пожаловать" },
+    nav: { dashboard: "🏠 Главная", create: "✍️ Создать", schedule: "📅 Расписание", media: "🖼️ Медиа", autonomous: "🤖 Авт. агент", settings: "⚙️ Настройки", admin: "👑 Админ панель", subtitle: "AI Платформа контента" },
+    auth: { login: "Войти", register: "Регистрация", email: "Эл. почта", password: "Пароль", confirmPassword: "Подтвердите пароль", name: "Имя", lastName: "Фамилия", phone: "Номер телефона", passport: "Серия и номер паспорта", loginTitle: "Войдите в ваш аккаунт", registerTitle: "Создание нового аккаунта", noAccount: "Нет аккаунта?", hasAccount: "Есть аккаунт?", pricesAndPlans: "Цены и тарифы", privacyNotice: "Ваши данные в безопасности и не передаются третьим лицам.", passwordsMatch: "Пароли не совпадают", passwordTooShort: "Пароль минимум 6 символов", invalidPhone: "Некорректный номер телефона", registering: "Регистрация...", loggingIn: "Вход..." },
+    plan: { free: "Бесплатный", starter: "Старт", pro: "Про", business: "Бизнес" },
+    theme: { light: "Светлая", dark: "Тёмная", toggle: "Тема" },
+    language: { label: "Язык", uz: "Узбекский", ru: "Русский", en: "Английский" },
+    status: { published: "Опубликовано", scheduled: "Запланировано", draft: "Черновик", failed: "Ошибка" },
+    dashboard: { title: "Главная", subtitle: "KontentBot Pro — AI платформа контента", newContent: "Новый контент", total: "Всего", published: "Опубликовано", scheduled: "Запланировано", draft: "Черновики", recent: "Последние материалы", viewAll: "Смотреть все →", empty: "Контента ещё нет.", firstContent: "Создайте первый контент →" },
+    schedule: { title: "Расписание контента", all: "Все", draft: "Черновик", scheduled: "Запланировано", published: "Опубликовано", failed: "Ошибка", publish: "Опубл.", delete: "Удалить", confirmDelete: "Подтвердите удаление?", empty: "Контент не найден", created: "Создано", scheduledAt: "Запланировано", publishedAt: "Опубликовано", error: "Ошибка" },
+    settings: { title: "Настройки", tipTitle: "Сохранение ключей", tipText: "Введённые ключи сохраняются в БД. Чтобы не потерять их при деплое, добавьте их в Railway Variables.", save: "Сохранить", saving: "Сохранение...", saved: "Сохранено!", savedHint: "сохранено" },
+    media: { title: "Медиатека", upload: "Загрузить файл", uploading: "Загрузка...", view: "Открыть", delete: "Удалить", empty: "Медиатека пуста", emptyHint: "Загрузите изображение или видео", confirmDelete: "Подтвердить удаление?", uploadError: "Ошибка загрузки" },
+    pricing: { title: "KontentBot Pro", subtitle: "AI платформа контента для Узбекистана", popular: "⭐ Популярный", current: "✅ Ваш текущий план", start: "Начать", pay: "Оплатить", paymentTitle: "💳 Способы оплаты", activationNote: "После подтверждения оплаты аккаунт активируется в течение 1 часа.", backHome: "← На главную", backLogin: "← Войти", perMonth: "сум/мес", free: "Бесплатно" },
+    admin: { title: "👑 Админ панель", totalUsers: "Всего пользователей", activeUsers: "Активные", paidUsers: "Подписчики", totalContents: "Всего контента", thisMonth: "В этом месяце", diagnostics: "📡 Диагностика Telegram", testBtn: "✈️ Тест Telegram", testing: "⏳ Проверка...", users: "👥 Пользователи", nameSurname: "Имя Фамилия", emailPhone: "Email / Телефон", passport: "Паспорт", plan: "Тариф", status: "Статус", subscription: "Подписка", actions: "Действия", activeStatus: "✅ Активен", blockedStatus: "❌ Заблокирован", confirmDelete: "Удалить пользователя?", telegramOk: "✅ Telegram успешно подключён!", telegramHints: "При проблемах проверьте", hint1: "Railway Variables → TELEGRAM_BOT_TOKEN правильно указан?", hint2: "Railway Variables → TELEGRAM_CHANNEL_ID: @username или -1001234567890", hint3: "Бот добавлен как администратор канала?" },
+    create: { title: "✍️ Создать новый контент", topic: "Тема", topicPlaceholder: "Например: Развитие электромобилей в Узбекистане...", platforms: "Платформы", contentType: "Тип контента", imageStyle: "Стиль изображения", videoScript: "Также создать видео-скрипт", scheduleTitle: "Время публикации", now: "Сейчас", later: "Позже", generate: "🤖 Создать с AI", generating: "⏳ AI создаёт контент...", created: "✅ Контент создан!", back: "← Назад", imageTitle: "🖼️ AI Изображение", videoTitle: "🎬 Видео", videoPromptHint: "Промпт для видео:", publishTitle: "📤 Публикация", publishBtn: "📤 Опубликовать", publishedBtn: "✅ Опубликовано", publishing: "⏳ Публикация...", publishWarning: "⚠️ Для публикации добавьте API ключи в Настройках", publishResultsTitle: "Результаты публикации:", successResult: "✅ Успешно", retry: "🔄 Повторить", platformsNote: "Контент будет опубликован на выбранных платформах", enterTopic: "Введите тему", selectPlatform: "Выберите хотя бы одну платформу", google: "(Google Gemini)", pollinations: "(Pollinations.ai)" },
+    contentTypes: { article: "Статья", video: "Видео", image_post: "Фото+подпись", story: "Сторис" }
   },
 
   en: {
-    common: {
-      save: "Save",
-      cancel: "Cancel",
-      delete: "Delete",
-      edit: "Edit",
-      loading: "Loading...",
-      error: "Error",
-      success: "Success",
-      back: "Back",
-      next: "Next",
-      yes: "Yes",
-      no: "No",
-      search: "Search",
-      submit: "Submit",
-      logout: "Logout",
-      upgrade: "Upgrade",
-      welcome: "Welcome"
-    },
-    nav: {
-      dashboard: "🏠 Dashboard",
-      create: "✍️ Create",
-      schedule: "📅 Schedule",
-      media: "🖼️ Media",
-      autonomous: "🤖 Autonomous Agent",
-      settings: "⚙️ Settings",
-      admin: "👑 Admin Panel",
-      subtitle: "AI Content Platform"
-    },
-    auth: {
-      login: "Sign in",
-      register: "Sign up",
-      email: "Email",
-      password: "Password",
-      confirmPassword: "Confirm password",
-      name: "First name",
-      lastName: "Last name",
-      phone: "Phone number",
-      passport: "Passport series and number",
-      loginTitle: "Sign in to your account",
-      registerTitle: "Create new account",
-      noAccount: "Don't have an account?",
-      hasAccount: "Already have an account?",
-      pricesAndPlans: "Pricing and plans",
-      privacyNotice: "Your data is securely stored and not shared with third parties.",
-      passwordsMatch: "Passwords don't match",
-      passwordTooShort: "Password must be at least 6 characters",
-      invalidPhone: "Invalid phone number",
-      registering: "Signing up...",
-      loggingIn: "Signing in..."
-    },
-    plan: {
-      free: "Free",
-      starter: "Starter",
-      pro: "Pro",
-      business: "Business"
-    },
-    theme: {
-      light: "Light",
-      dark: "Dark",
-      toggle: "Toggle theme"
-    },
-    language: {
-      label: "Language",
-      uz: "Uzbek",
-      ru: "Russian",
-      en: "English"
-    }
+    common: { save: "Save", cancel: "Cancel", delete: "Delete", edit: "Edit", loading: "Loading...", error: "Error", success: "Success", back: "Back", next: "Next", yes: "Yes", no: "No", search: "Search", submit: "Submit", logout: "Logout", upgrade: "Upgrade", welcome: "Welcome" },
+    nav: { dashboard: "🏠 Dashboard", create: "✍️ Create", schedule: "📅 Schedule", media: "🖼️ Media", autonomous: "🤖 Auto Agent", settings: "⚙️ Settings", admin: "👑 Admin Panel", subtitle: "AI Content Platform" },
+    auth: { login: "Sign in", register: "Sign up", email: "Email", password: "Password", confirmPassword: "Confirm password", name: "First name", lastName: "Last name", phone: "Phone number", passport: "Passport series and number", loginTitle: "Sign in to your account", registerTitle: "Create new account", noAccount: "Don't have an account?", hasAccount: "Already have an account?", pricesAndPlans: "Pricing and plans", privacyNotice: "Your data is securely stored and never shared with third parties.", passwordsMatch: "Passwords don't match", passwordTooShort: "Password must be at least 6 characters", invalidPhone: "Invalid phone number", registering: "Signing up...", loggingIn: "Signing in..." },
+    plan: { free: "Free", starter: "Starter", pro: "Pro", business: "Business" },
+    theme: { light: "Light", dark: "Dark", toggle: "Theme" },
+    language: { label: "Language", uz: "Uzbek", ru: "Russian", en: "English" },
+    status: { published: "Published", scheduled: "Scheduled", draft: "Draft", failed: "Failed" },
+    dashboard: { title: "Dashboard", subtitle: "KontentBot Pro — Uzbek AI Content Platform", newContent: "New Content", total: "Total", published: "Published", scheduled: "Scheduled", draft: "Draft", recent: "Recent Content", viewAll: "View all →", empty: "No content yet.", firstContent: "Create your first content →" },
+    schedule: { title: "Content Schedule", all: "All", draft: "Draft", scheduled: "Scheduled", published: "Published", failed: "Failed", publish: "Publish", delete: "Delete", confirmDelete: "Confirm delete?", empty: "No content found", created: "Created", scheduledAt: "Scheduled", publishedAt: "Published", error: "Error" },
+    settings: { title: "Settings", tipTitle: "Persistent key storage", tipText: "Keys saved here are stored in the DB. To prevent loss on redeploy, also add them to Railway Variables.", save: "Save", saving: "Saving...", saved: "Saved!", savedHint: "saved" },
+    media: { title: "Media Library", upload: "Upload File", uploading: "Uploading...", view: "View", delete: "Delete", empty: "Media library is empty", emptyHint: "Upload an image or video", confirmDelete: "Confirm delete?", uploadError: "Upload error" },
+    pricing: { title: "KontentBot Pro", subtitle: "AI content platform for Uzbekistan", popular: "⭐ Popular", current: "✅ Your current plan", start: "Get started", pay: "Subscribe", paymentTitle: "💳 Payment methods", activationNote: "Your account will be activated within 1 hour after payment confirmation.", backHome: "← Back to home", backLogin: "← Sign in", perMonth: "UZS/mo", free: "Free" },
+    admin: { title: "👑 Admin Panel", totalUsers: "Total users", activeUsers: "Active", paidUsers: "Subscribers", totalContents: "Total content", thisMonth: "This month", diagnostics: "📡 Telegram Diagnostics", testBtn: "✈️ Telegram Test", testing: "⏳ Testing...", users: "👥 Users", nameSurname: "Name", emailPhone: "Email / Phone", passport: "Passport", plan: "Plan", status: "Status", subscription: "Subscription", actions: "Actions", activeStatus: "✅ Active", blockedStatus: "❌ Blocked", confirmDelete: "Delete user?", telegramOk: "✅ Telegram connected successfully!", telegramHints: "If issues occur, check", hint1: "Railway Variables → TELEGRAM_BOT_TOKEN is correct?", hint2: "Railway Variables → TELEGRAM_CHANNEL_ID: @username or -1001234567890", hint3: "Bot added as channel Administrator?" },
+    create: { title: "✍️ Create New Content", topic: "Topic", topicPlaceholder: "E.g. Electric vehicles development in Uzbekistan...", platforms: "Platforms", contentType: "Content type", imageStyle: "Image style", videoScript: "Also generate video script", scheduleTitle: "Publish time", now: "Now", later: "Later", generate: "🤖 Generate with AI", generating: "⏳ AI is generating content...", created: "✅ Content created!", back: "← Back", imageTitle: "🖼️ AI Image", videoTitle: "🎬 Video", videoPromptHint: "Video AI prompt:", publishTitle: "📤 Publish", publishBtn: "📤 Publish", publishedBtn: "✅ Published", publishing: "⏳ Publishing...", publishWarning: "⚠️ Add API keys in Settings to enable publishing", publishResultsTitle: "Publish results:", successResult: "✅ Success", retry: "🔄 Retry", platformsNote: "Content will be published to selected platforms", enterTopic: "Enter a topic", selectPlatform: "Select at least one platform", google: "(Google Gemini)", pollinations: "(Pollinations.ai)" },
+    contentTypes: { article: "Article", video: "Video", image_post: "Image+Caption", story: "Story" }
   }
 };
 
