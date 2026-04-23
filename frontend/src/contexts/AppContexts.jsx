@@ -3,45 +3,44 @@ import { getTranslation } from '../i18n/translations';
 
 const ThemeContext = createContext({});
 const LanguageContext = createContext({});
-
 export const useTheme = () => useContext(ThemeContext);
 export const useLanguage = () => useContext(LanguageContext);
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('kb_theme');
-    if (saved) return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
+  const [mode, setMode] = useState(() => localStorage.getItem('kb_theme') || 'system');
+  const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') root.classList.add('dark');
-    else root.classList.remove('dark');
-    localStorage.setItem('kb_theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+    const apply = (dark) => {
+      document.documentElement.classList.toggle('dark', dark);
+      setTheme(dark ? 'dark' : 'light');
+    };
+    localStorage.setItem('kb_theme', mode);
+    if (mode === 'system') {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      apply(mq.matches);
+      const h = (e) => apply(e.matches);
+      mq.addEventListener('change', h);
+      return () => mq.removeEventListener('change', h);
+    } else {
+      apply(mode === 'dark');
+    }
+  }, [mode]);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, mode, setMode }}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
 export function LanguageProvider({ children }) {
-  const [language, setLanguage] = useState(() => {
-    return localStorage.getItem('kb_lang') || 'uz';
-  });
-
+  const [language, setLanguage] = useState(() => localStorage.getItem('kb_lang') || 'uz');
   useEffect(() => {
     localStorage.setItem('kb_lang', language);
     document.documentElement.lang = language;
   }, [language]);
-
   const t = (key) => getTranslation(language, key);
-
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
       {children}

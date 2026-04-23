@@ -18,7 +18,6 @@ export const useAuth = () => useContext(AuthContext);
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { t } = useLanguage();
 
   useEffect(() => {
     const token = localStorage.getItem('kb_token');
@@ -30,26 +29,15 @@ export default function App() {
       .finally(() => setLoading(false));
   }, []);
 
-  const login = (token, userData) => {
-    localStorage.setItem('kb_token', token);
-    setUser(userData);
-  };
+  const login = (token, userData) => { localStorage.setItem('kb_token', token); setUser(userData); };
+  const logout = () => { localStorage.removeItem('kb_token'); setUser(null); };
 
-  const logout = () => {
-    localStorage.removeItem('kb_token');
-    setUser(null);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-950">
-        <div className="text-center">
-          <div className="text-4xl mb-3">🤖</div>
-          <p className="text-gray-500 dark:text-gray-400">{t('common.loading')}</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-950">
+      <div className="text-center"><div className="text-4xl mb-3">⏳</div>
+        <p className="text-gray-500 dark:text-gray-400">Yuklanmoqda...</p></div>
+    </div>
+  );
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
@@ -63,10 +51,49 @@ export default function App() {
   );
 }
 
+function ThemeLangBar({ compact = false }) {
+  const { mode, setMode } = useTheme();
+  const { language, setLanguage } = useLanguage();
+
+  const themes = [
+    { key: 'light', icon: '☀️' },
+    { key: 'dark',  icon: '🌙' },
+    { key: 'system', icon: '🖥️' },
+  ];
+
+  return (
+    <div className={`flex items-center justify-between gap-2 px-3 ${compact ? 'py-2' : 'py-2'} border-b border-gray-800`}>
+      <div className="flex items-center bg-gray-800 rounded-full p-0.5 gap-0.5">
+        {themes.map(({ key, icon }) => (
+          <button key={key} onClick={() => setMode(key)} title={key}
+            className={`w-7 h-7 flex items-center justify-center rounded-full text-xs transition-all ${
+              mode === key ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'
+            }`}>
+            {icon}
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center bg-gray-800 rounded-full p-0.5 gap-0.5">
+        {['uz', 'ru', 'en'].map(lng => (
+          <button key={lng} onClick={() => setLanguage(lng)}
+            className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-all ${
+              language === lng ? 'bg-blue-600 text-white shadow' : 'text-gray-400 hover:text-white'
+            }`}>
+            {lng.toUpperCase()}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export { ThemeLangBar };
+
+const PLAN_COLORS = { free: 'text-gray-400', starter: 'text-blue-400', pro: 'text-purple-400', business: 'text-yellow-400' };
+
 function MainLayout() {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const { language, setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const navItems = [
@@ -79,75 +106,48 @@ function MainLayout() {
     ...(user?.role === 'superadmin' ? [{ to: '/admin', label: t('nav.admin') }] : [])
   ];
 
-  const handleLogout = () => { logout(); navigate('/login'); };
-
-  const PLAN_COLORS = { free: 'text-gray-400', starter: 'text-blue-400', pro: 'text-purple-400', business: 'text-yellow-400' };
-
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-gray-950">
-      <aside className="w-60 bg-gray-900 dark:bg-black text-white flex flex-col">
-        <div className="p-5 border-b border-gray-700 dark:border-gray-800">
-          <h1 className="text-xl font-bold text-blue-400">🤖 KontentBot Pro</h1>
-          <p className="text-xs text-gray-400 mt-1">{t('nav.subtitle')}</p>
+      <aside className="w-56 bg-gray-900 dark:bg-black text-white flex flex-col flex-shrink-0">
+        {/* Logo */}
+        <div className="px-4 pt-4 pb-3">
+          <h1 className="text-base font-bold text-blue-400">🤖 KontentBot Pro</h1>
+          <p className="text-[11px] text-gray-500 mt-0.5">{t('nav.subtitle')}</p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        {/* Theme + Lang — TOP */}
+        <ThemeLangBar />
+
+        {/* Nav */}
+        <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
           {navItems.map(item => (
             <NavLink key={item.to} to={item.to} end={item.exact}
               className={({ isActive }) =>
-                `flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isActive ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                 }`}>
               {item.label}
             </NavLink>
           ))}
         </nav>
 
-        {/* Theme + Language toggle */}
-        <div className="px-4 py-3 border-t border-gray-800 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs text-gray-400">{t('theme.toggle')}</span>
-            <button onClick={toggleTheme}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-800 hover:bg-gray-700 text-xs transition-colors"
-              title={theme === 'dark' ? t('theme.light') : t('theme.dark')}>
-              {theme === 'dark' ? '☀️' : '🌙'}
-              <span className="ml-0.5">{theme === 'dark' ? t('theme.light') : t('theme.dark')}</span>
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs text-gray-400">{t('language.label')}</span>
-            <div className="flex gap-1">
-              {['uz', 'ru', 'en'].map(lng => (
-                <button key={lng} onClick={() => setLanguage(lng)}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                    language === lng ? 'bg-blue-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
-                  }`}>
-                  {lng.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4 border-t border-gray-700 dark:border-gray-800">
-          <div className="text-sm text-gray-200 font-medium truncate">{user?.name || user?.email}</div>
+        {/* User */}
+        <div className="px-4 py-3 border-t border-gray-800">
+          <div className="text-sm text-gray-200 font-semibold truncate">{user?.name || user?.email}</div>
           <div className={`text-xs mt-0.5 ${PLAN_COLORS[user?.plan] || 'text-gray-400'}`}>
             {t('plan.' + (user?.plan || 'free'))} plan
           </div>
-          <div className="flex gap-2 mt-2">
-            <button onClick={() => navigate('/pricing')}
-              className="text-xs text-blue-400 hover:text-blue-300">
+          <div className="flex gap-3 mt-2">
+            <button onClick={() => navigate('/pricing')} className="text-xs text-blue-400 hover:text-blue-300">
               ↑ {t('common.upgrade')}
             </button>
-            <span className="text-gray-600">|</span>
-            <button onClick={handleLogout}
-              className="text-xs text-gray-400 hover:text-red-400">
+            <button onClick={() => { logout(); navigate('/login'); }} className="text-xs text-gray-500 hover:text-red-400">
               {t('common.logout')}
             </button>
           </div>
         </div>
       </aside>
+
       <main className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-950 dark:text-gray-100">
         <Routes>
           <Route path="/" element={<Dashboard />} />
