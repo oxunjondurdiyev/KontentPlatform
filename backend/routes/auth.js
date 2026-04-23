@@ -17,12 +17,12 @@ function makeToken(user) {
 
 router.post('/register', (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, last_name, phone, passport } = req.body;
     if (!email || !password) return res.status(400).json({ success: false, error: 'Email va parol talab qilinadi' });
-    if (password.length < 6) return res.status(400).json({ success: false, error: 'Parol kamida 6 ta belgi bo\'lishi kerak' });
-    if (User.findByEmail(email)) return res.status(400).json({ success: false, error: 'Bu email allaqachon ro\'yxatdan o\'tgan' });
+    if (password.length < 6) return res.status(400).json({ success: false, error: "Parol kamida 6 ta belgi bo'lishi kerak" });
+    if (User.findByEmail(email)) return res.status(400).json({ success: false, error: "Bu email allaqachon ro'yxatdan o'tgan" });
 
-    const user = User.create({ email, password, name, plan: 'free' });
+    const user = User.create({ email, password, name, last_name, phone, passport, plan: 'free' });
     const token = makeToken(user);
     res.json({ success: true, data: { token, user: User.safe(user) } });
   } catch (err) {
@@ -35,9 +35,15 @@ router.post('/login', (req, res) => {
     const { email, password } = req.body;
     const user = User.findByEmail(email);
     if (!user || !User.verifyPassword(user, password)) {
-      return res.status(401).json({ success: false, error: 'Email yoki parol noto\'g\'ri' });
+      return res.status(401).json({ success: false, error: "Email yoki parol noto'g'ri" });
     }
     if (!user.is_active) return res.status(403).json({ success: false, error: 'Hisobingiz faol emas. Admin bilan bog\'laning.' });
+
+    // last_login vaqtini yangilash
+    try {
+      const { getDb } = require('../models/database');
+      getDb().prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?').run(user.id);
+    } catch {}
 
     const token = makeToken(user);
     res.json({ success: true, data: { token, user: User.safe(user) } });

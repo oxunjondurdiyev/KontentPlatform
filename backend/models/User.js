@@ -1,58 +1,60 @@
-const { getDb } = require("./database");
-const bcrypt = require("bcryptjs");
+const bcrypt = require('bcryptjs');
+const { getDb } = require('./database');
 
-const PLAN_LIMITS = {
-  free:     { contents_per_month: 5,   autonomous: false, label: "Bepul" },
-  starter:  { contents_per_month: 30,  autonomous: false, label: "Starter" },
-  pro:      { contents_per_month: 100, autonomous: true,  label: "Pro" },
-  business: { contents_per_month: -1,  autonomous: true,  label: "Biznes" }
-};
+const PLAN_LIMITS = { free: 5, starter: 30, pro: 100, business: Infinity };
 
-class User {
-  static create({ email, password, name, last_name, phone, passport, role = "user", plan = "free" }) {
+const User = {
+  create({ email, password, name, last_name, phone, passport, role = 'user', plan = 'free' }) {
     const db = getDb();
     const hash = bcrypt.hashSync(password, 10);
-    const result = db.prepare(
-      "INSERT INTO users (email, password_hash, name, last_name, phone, passport, role, plan) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-    ).run(email, hash, name || "", last_name || "", phone || "", passport || "", role, plan);
-    return this.findById(result.lastInsertRowid);
-  }
+    const stmt = db.prepare(
+      'INSERT INTO users (email, password_hash, name, last_name, phone, passport, role, plan) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    );
+    const result = stmt.run(email, hash, name || null, last_name || null, phone || null, passport || null, role, plan);
+    return db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid);
+  },
 
-  static findById(id) {
-    return getDb().prepare("SELECT * FROM users WHERE id = ?").get(id);
-  }
+  findByEmail(email) {
+    return getDb().prepare('SELECT * FROM users WHERE email = ?').get(email);
+  },
 
-  static findByEmail(email) {
-    return getDb().prepare("SELECT * FROM users WHERE email = ?").get(email);
-  }
+  findById(id) {
+    return getDb().prepare('SELECT * FROM users WHERE id = ?').get(id);
+  },
 
-  static findAll() {
-    return getDb().prepare(
-      "SELECT id, email, name, last_name, phone, passport, role, plan, is_active, subscription_expires, created_at FROM users ORDER BY created_at DESC"
-    ).all();
-  }
+  findAll() {
+    return getDb().prepare('SELECT * FROM users ORDER BY created_at DESC').all();
+  },
 
-  static update(id, data) {
+  update(id, data) {
     const db = getDb();
-    const keys = Object.keys(data);
-    const fields = keys.map(k => k + " = ?").join(", ");
-    db.prepare("UPDATE users SET " + fields + " WHERE id = ?").run(...Object.values(data), id);
-    return this.findById(id);
-  }
+    const fields = Object.keys(data).map(k => `${k} = ?`).join(', ');
+    db.prepare(`UPDATE users SET ${fields} WHERE id = ?`).run(...Object.values(data), id);
+    return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+  },
 
-  static verifyPassword(user, password) {
-    return bcrypt.compareSync(password, user.password_hash);
-  }
+  verifyPassword(user, password) {
+    try { return bcrypt.compareSync(password, user.password_hash); }
+    catch { return false; }
+  },
 
-  static safe(user) {
+  safe(user) {
     if (!user) return null;
     const { password_hash, ...safe } = user;
     return safe;
-  }
+  },
 
-  static getPlanLimits(plan) {
-    return PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+  getMonthlyCount(userId) {
+    return getDb().prepare(
+      "SELECT COUNT(*) as c FROM contents WHERE user_id = ? AND created_at >= date('now','start of month')"
+    ).get(userId)?.c || 0;
+  },
+
+  canCreate(user) {
+    const limit = PLAN_LIMITS[user.plan] || 5;
+    if (limit === Infinity) return true;
+    return this.getMonthlyCount(user.id) < limit;
   }
-}
+};
 
 module.exports = User;
