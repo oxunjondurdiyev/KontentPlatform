@@ -49,15 +49,16 @@ export default function App() {
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
       <Routes>
+        {/* Login/Register — har doim ochiq. Faqat kirgan oddiy foydalanuvchi redirect qilinadi */}
         <Route path="/login"
-          element={user ? <Navigate to={isSuperAdmin ? '/superadmin' : '/'} replace /> : <Login />} />
+          element={user && !isSuperAdmin ? <Navigate to="/" replace /> : <Login />} />
         <Route path="/register"
-          element={user ? <Navigate to={isSuperAdmin ? '/superadmin' : '/'} replace /> : <Register />} />
+          element={user && !isSuperAdmin ? <Navigate to="/" replace /> : <Register />} />
         <Route path="/pricing" element={<Pricing />} />
 
-        {/* SuperAdmin dedicated login — only non-logged-in users */}
+        {/* Admin login — faqat login qilmagan foydalanuvchilarga */}
         <Route path="/admin-login"
-          element={user ? <Navigate to={isSuperAdmin ? '/superadmin' : '/'} replace /> : <AdminLogin />} />
+          element={isSuperAdmin ? <Navigate to="/superadmin" replace /> : <AdminLogin />} />
 
         {/* SuperAdmin panel — completely separate, no main layout */}
         <Route path="/superadmin"
