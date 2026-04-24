@@ -448,9 +448,17 @@ const NAV = [
 export default function SuperAdmin() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { colors } = useColor();
+  const { color, setColor, colors } = useColor();
   const { mode, setMode } = useTheme();
   const { language, setLanguage } = useLanguage();
+
+  const SWATCHES = [
+    { id:'blue',    hex:'#2563eb' },
+    { id:'violet',  hex:'#7c3aed' },
+    { id:'emerald', hex:'#059669' },
+    { id:'rose',    hex:'#e11d48' },
+    { id:'amber',   hex:'#d97706' },
+  ];
   const [tab, setTab] = useState('overview');
   const [stats, setStats] = useState(null);
 
@@ -519,6 +527,18 @@ export default function SuperAdmin() {
                 {lng.toUpperCase()}
               </button>
             ))}
+          </div>
+          {/* Color swatches — Mavzular */}
+          <div className="flex items-center gap-1.5 px-1">
+            {SWATCHES.map(s => (
+              <button key={s.id} onClick={() => setColor(s.id)} title={s.id}
+                style={{ backgroundColor: s.hex }}
+                className={`w-4 h-4 rounded-full transition-all flex-shrink-0 ${
+                  color===s.id ? 'ring-2 ring-offset-1 ring-offset-white dark:ring-offset-gray-900 ring-gray-500 scale-125'
+                               : 'scale-100 opacity-60 hover:opacity-100 hover:scale-110'
+                }`} />
+            ))}
+            <span className="text-[10px] text-gray-400 dark:text-gray-600 ml-0.5">Mavzu</span>
           </div>
           <div className="px-1">
             <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>

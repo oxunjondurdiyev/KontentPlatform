@@ -37,14 +37,42 @@ router.post('/login', (req, res) => {
     if (!user || !User.verifyPassword(user, password)) {
       return res.status(401).json({ success: false, error: "Email yoki parol noto'g'ri" });
     }
-    if (!user.is_active) return res.status(403).json({ success: false, error: 'Hisobingiz faol emas. Admin bilan bog\'laning.' });
-
-    // last_login vaqtini yangilash
+    // SuperAdmin bu sahifadan kira olmaydi — kiberxavfsizlik
+    if (user.role === 'superadmin') {
+      return res.status(403).json({ success: false, error: "SuperAdmin uchun alohida kirish sahifasi mavjud. /admin-login ga o'ting." });
+    }
+    if (!user.is_active) {
+      return res.status(403).json({ success: false, error: "Hisobingiz faol emas. Admin bilan bog'laning." });
+    }
     try {
       const { getDb } = require('../models/database');
       getDb().prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?').run(user.id);
     } catch {}
+    const token = makeToken(user);
+    res.json({ success: true, data: { token, user: User.safe(user) } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
+// SuperAdmin uchun alohida login endpoint
+router.post('/admin-login', (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = User.findByEmail(email);
+    if (!user || !User.verifyPassword(user, password)) {
+      return res.status(401).json({ success: false, error: "Email yoki parol noto'g'ri" });
+    }
+    if (user.role !== 'superadmin') {
+      return res.status(403).json({ success: false, error: "Bu sahifa faqat SuperAdmin uchun. Oddiy foydalanuvchi bo'lsangiz /login ga o'ting." });
+    }
+    if (!user.is_active) {
+      return res.status(403).json({ success: false, error: 'Hisob faol emas.' });
+    }
+    try {
+      const { getDb } = require('../models/database');
+      getDb().prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?').run(user.id);
+    } catch {}
     const token = makeToken(user);
     res.json({ success: true, data: { token, user: User.safe(user) } });
   } catch (err) {

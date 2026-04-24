@@ -6,7 +6,7 @@ import { useLanguage, useTheme } from '../contexts/AppContexts';
 export default function Pricing() {
   const { user } = useAuth();
   const { t, language, setLanguage } = useLanguage();
-  const { theme, toggleTheme } = useTheme();
+  const { mode, setMode } = useTheme();
 
   const PLANS = [
     {
@@ -60,9 +60,9 @@ export default function Pricing() {
             </button>
           ))}
         </div>
-        <button onClick={toggleTheme}
+        <button onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}
           className="bg-white/10 backdrop-blur hover:bg-white/20 text-white px-3 py-1.5 rounded-full transition">
-          {theme === 'dark' ? '☀️' : '🌙'}
+          {mode === 'dark' ? '☀' : '◑'}
         </button>
       </div>
 
@@ -127,10 +127,14 @@ export default function Pricing() {
           <p className="text-center text-blue-300 text-sm mt-6">{t('pricing.activationNote')}</p>
         </div>
 
-        <div className="text-center mt-8">
+        <div className="text-center mt-8 space-y-2">
           {user
-            ? <Link to="/" className="text-blue-300 hover:text-white">{t('pricing.backHome')}</Link>
-            : <Link to="/login" className="text-blue-300 hover:text-white">{t('pricing.backLogin')}</Link>
+            ? <Link to="/" className="text-blue-300 hover:text-white text-sm">{t('pricing.backHome')}</Link>
+            : <div className="flex items-center justify-center gap-4">
+                <Link to="/login" className="text-blue-300 hover:text-white text-sm">{t('pricing.backLogin')}</Link>
+                <span className="text-white/30">|</span>
+                <Link to="/register" className="text-blue-300 hover:text-white text-sm">Bepul boshlash →</Link>
+              </div>
           }
         </div>
       </div>

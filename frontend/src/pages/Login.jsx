@@ -102,6 +102,7 @@ export default function Login() {
     }
   };
 
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Decorative glow blobs */}
@@ -173,18 +174,29 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-gray-100 dark:border-white/[0.06] flex items-center justify-between">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t('auth.noAccount')}{' '}
-              <Link to="/register" className="font-semibold hover:opacity-75 transition-opacity"
-                style={{ color: colors.main }}>
-                {t('auth.register')}
+          <div className="mt-6 pt-5 border-t border-gray-100 dark:border-white/[0.06] space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t('auth.noAccount')}{' '}
+                <Link to="/register" className="font-semibold hover:opacity-75 transition-opacity"
+                  style={{ color: colors.main }}>
+                  {t('auth.register')}
+                </Link>
+              </p>
+              <Link to="/pricing"
+                className="text-xs text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
+                {t('auth.pricesAndPlans')} →
               </Link>
-            </p>
-            <Link to="/pricing"
-              className="text-xs text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
-              {t('auth.pricesAndPlans')} →
-            </Link>
+            </div>
+            {/* Admin separator */}
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-px bg-gray-100 dark:bg-white/5" />
+              <Link to="/admin-login"
+                className="text-[10px] font-semibold uppercase tracking-widest text-gray-300 dark:text-gray-700 hover:text-gray-500 dark:hover:text-gray-500 transition-colors">
+                SuperAdmin →
+              </Link>
+              <div className="flex-1 h-px bg-gray-100 dark:bg-white/5" />
+            </div>
           </div>
         </div>
       </div>

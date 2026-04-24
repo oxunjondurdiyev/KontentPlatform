@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Pricing from './pages/Pricing';
 import SuperAdmin from './pages/SuperAdmin';
+import AdminLogin from './pages/AdminLogin';
 import { useTheme, useLanguage, useColor } from './contexts/AppContexts';
 
 export const AuthContext = createContext({});
@@ -54,9 +55,13 @@ export default function App() {
           element={user ? <Navigate to={isSuperAdmin ? '/superadmin' : '/'} replace /> : <Register />} />
         <Route path="/pricing" element={<Pricing />} />
 
-        {/* SuperAdmin — completely separate, no main layout */}
+        {/* SuperAdmin dedicated login — only non-logged-in users */}
+        <Route path="/admin-login"
+          element={user ? <Navigate to={isSuperAdmin ? '/superadmin' : '/'} replace /> : <AdminLogin />} />
+
+        {/* SuperAdmin panel — completely separate, no main layout */}
         <Route path="/superadmin"
-          element={isSuperAdmin ? <SuperAdmin /> : user ? <Navigate to="/" replace /> : <Navigate to="/login" replace />} />
+          element={isSuperAdmin ? <SuperAdmin /> : user ? <Navigate to="/" replace /> : <Navigate to="/admin-login" replace />} />
 
         {/* Regular content app — superadmin is redirected away */}
         <Route path="/*"
