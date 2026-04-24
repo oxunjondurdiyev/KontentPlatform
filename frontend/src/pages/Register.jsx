@@ -234,7 +234,7 @@ export default function Register() {
   const { colors } = useColor();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ name:'', last_name:'', phone:'', passport:'', email:'', password:'', confirm:'' });
+  const [form, setForm] = useState({ name:'', last_name:'', phone:'', email:'', password:'', confirm:'' });
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
@@ -264,14 +264,18 @@ export default function Register() {
     e.preventDefault();
     if (form.password !== form.confirm) { setError(t('auth.passwordsMatch')); return; }
     if (form.password.length < 6) { setError(t('auth.passwordTooShort')); return; }
-    if (!form.phone.match(/^[+]?[0-9]{9,13}$/)) { setError(t('auth.invalidPhone')); return; }
+    // Telefon: faqat raqamlarni olib, 9-13 ta bo'lishini tekshir
+    const phoneDigits = form.phone.replace(/\D/g, '');
+    if (form.phone && (phoneDigits.length < 9 || phoneDigits.length > 13)) {
+      setError(t('auth.invalidPhone')); return;
+    }
     setError('');
     setLoading(true);
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name:form.name, last_name:form.last_name, phone:form.phone, passport:form.passport, email:form.email, password:form.password }),
+        body: JSON.stringify({ name:form.name, last_name:form.last_name, phone:form.phone, email:form.email, password:form.password }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
@@ -339,14 +343,10 @@ export default function Register() {
               </Field>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <Field label={t('auth.phone')}>
-                <input type="tel" required className={inputCls} placeholder="+998..." value={form.phone} onChange={set('phone')} />
-              </Field>
-              <Field label={t('auth.passport')}>
-                <input type="text" required className={inputCls} placeholder="AA1234567" value={form.passport} onChange={set('passport')} />
-              </Field>
-            </div>
+            <Field label={t('auth.phone')}>
+              <input type="tel" required className={inputCls} placeholder="+998 90 123 45 67"
+                value={form.phone} onChange={set('phone')} />
+            </Field>
 
             <Field label={t('auth.email')}>
               <input type="email" required className={inputCls} placeholder="email@example.com"
